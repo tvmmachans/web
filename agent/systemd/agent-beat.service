@@ -1,0 +1,32 @@
+[Unit]
+Description=AI Social Media Agent Beat Scheduler
+After=network.target postgresql.service redis.service
+Requires=postgresql.service redis.service
+
+[Service]
+Type=simple
+User=agent
+Group=agent
+WorkingDirectory=/opt/ai-social-media-agent
+Environment=PATH=/opt/ai-social-media-agent/venv/bin
+EnvironmentFile=/opt/ai-social-media-agent/.env
+ExecStart=/opt/ai-social-media-agent/venv/bin/celery -A agent.celery_app beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ai-agent-beat
+
+# Security settings
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/ai-social-media-agent /tmp
+ProtectHome=yes
+
+# Resource limits
+MemoryLimit=512M
+CPUQuota=100%
+
+[Install]
+WantedBy=multi-user.target

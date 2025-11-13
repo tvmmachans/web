@@ -1,0 +1,32 @@
+[Unit]
+Description=AI Social Media Agent
+After=network.target postgresql.service redis.service
+Requires=postgresql.service redis.service
+
+[Service]
+Type=simple
+User=agent
+Group=agent
+WorkingDirectory=/opt/ai-social-media-agent
+Environment=PATH=/opt/ai-social-media-agent/venv/bin
+EnvironmentFile=/opt/ai-social-media-agent/.env
+ExecStart=/opt/ai-social-media-agent/venv/bin/celery -A agent.celery_app worker --loglevel=info --concurrency=2
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ai-agent
+
+# Security settings
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/ai-social-media-agent /tmp
+ProtectHome=yes
+
+# Resource limits
+MemoryLimit=1G
+CPUQuota=200%
+
+[Install]
+WantedBy=multi-user.target

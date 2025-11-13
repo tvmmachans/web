@@ -1,0 +1,35 @@
+# Dockerfile for the Autonomous AI Social Media Agent
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install Python dependencies
+COPY agent/requirements-agent.txt .
+RUN pip install --no-cache-dir -r requirements-agent.txt
+
+# Copy agent code
+COPY agent/ ./agent/
+COPY backend/ ./backend/
+
+# Create non-root user
+RUN useradd --create-home --shell /bin/bash agent
+RUN chown -R agent:agent /app
+USER agent
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import agent.celery_app; print('Agent healthy')" || exit 1
+
+# Default command (can be overridden in docker-compose)
+CMD ["celery", "-A", "agent.celery_app", "worker", "--loglevel=info"]

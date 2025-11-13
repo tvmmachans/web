@@ -1,0 +1,17 @@
+# Additional dependencies for the AI Social Media Agent
+ffmpeg-python==0.2.0
+schedule==1.2.0
+twilio==8.2.2
+sendgrid==6.10.0
+scikit-learn==1.3.2
+pandas==2.1.4
+numpy==1.26.2
+matplotlib==3.8.2
+seaborn==0.13.0
+celery==5.3.4
+redis==5.0.1
+httpx==0.26.0
+pydantic==2.5.2
+python-multipart==0.0.6
+uvloop==0.19.0
+gunicorn==21.2.0

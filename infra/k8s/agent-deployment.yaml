@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent
+  namespace: social-media-automation
+  labels:
+    app: agent
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: agent
+  template:
+    metadata:
+      labels:
+        app: agent
+    spec:
+      containers:
+      - name: agent
+        image: your-registry/agent:latest
+        envFrom:
+        - configMapRef:
+            name: agent-config
+        - secretRef:
+            name: agent-secrets
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          exec:
+            command:
+            - python
+            - -c
+            - import redis; redis.Redis(host='redis-service').ping()
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - python
+            - -c
+            - import redis; redis.Redis(host='redis-service').ping()
+          initialDelaySeconds: 5
+          periodSeconds: 5

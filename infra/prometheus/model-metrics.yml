@@ -1,0 +1,53 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  - job_name: 'backend'
+    static_configs:
+      - targets: ['backend:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  - job_name: 'agent'
+    static_configs:
+      - targets: ['agent:8001']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  - job_name: 'voice-engine'
+    static_configs:
+      - targets: ['voice-engine:8002']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  - job_name: 'orchestrator'
+    static_configs:
+      - targets: ['orchestrator:8003']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Model performance metrics
+  - job_name: 'model_metrics'
+    static_configs:
+      - targets: ['backend:8000']
+    metrics_path: '/api/v1/model-metrics'
+    scrape_interval: 5m  # Collect model metrics every 5 minutes
+
+  # Trend prediction metrics
+  - job_name: 'trend_metrics'
+    static_configs:
+      - targets: ['backend:8000']
+    metrics_path: '/api/v1/trend-metrics'
+    scrape_interval: 10m  # Collect trend metrics every 10 minutes
+
+  # Learning feedback metrics
+  - job_name: 'learning_metrics'
+    static_configs:
+      - targets: ['agent:8001']
+    metrics_path: '/api/v1/learning-metrics'
+    scrape_interval: 15m  # Collect learning metrics every 15 minutes
