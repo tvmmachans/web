@@ -1,1 +1,14 @@
-node_modules
+﻿# Node
+node_modules/
+dist/
+build/
+.cache/
+.env
+
+# Java
+target/
+*.class
+
+# OS files
+.DS_Store
+Thumbs.db
