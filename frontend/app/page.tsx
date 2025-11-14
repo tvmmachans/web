@@ -137,6 +137,23 @@ export default function Home() {
           >
             View Analytics
           </a>
+          
+          <a 
+            href="/settings"
+            style={{
+              padding: '1rem',
+              background: '#f59e0b',
+              color: 'white',
+              borderRadius: '8px',
+              textAlign: 'center',
+              fontWeight: '600',
+              transition: 'background 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#d97706'}
+            onMouseLeave={(e) => e.currentTarget.style.background = '#f59e0b'}
+          >
+            Settings & Configuration
+          </a>
         </nav>
 
         <div style={{
