@@ -1,0 +1,100 @@
+services:
+  # Backend API Service
+  - type: web
+    name: ai-backend
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile.backend
+    dockerContext: .
+    healthCheckPath: /health/live
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ai-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: ai-redis
+          type: redis
+          property: connectionString
+      - key: FRONTEND_URL
+        fromService:
+          name: ai-frontend
+          type: web
+          property: host
+        value: https://ai-frontend.onrender.com
+      - key: PORT
+        value: 8000
+      - key: PYTHONUNBUFFERED
+        value: "1"
+
+  # Frontend Dashboard
+  - type: web
+    name: ai-frontend
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile.frontend
+    dockerContext: .
+    healthCheckPath: /
+    envVars:
+      - key: NEXT_PUBLIC_API_BASE_URL
+        fromService:
+          name: ai-backend
+          type: web
+          property: host
+        value: https://ai-backend.onrender.com
+      - key: PORT
+        value: 3000
+      - key: NODE_ENV
+        value: production
+
+  # AI Agent Worker
+  - type: worker
+    name: ai-agent
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile.agent
+    dockerContext: .
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ai-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: ai-redis
+          type: redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          name: ai-redis
+          type: redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          name: ai-redis
+          type: redis
+          property: connectionString
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: BACKEND_API_URL
+        fromService:
+          name: ai-backend
+          type: web
+          property: host
+        value: https://ai-backend.onrender.com
+      - key: PYTHONUNBUFFERED
+        value: "1"
+
+databases:
+  - name: ai-postgres
+    plan: free
+    databaseName: ai_social
+    user: ai_user
+
+redis:
+  - name: ai-redis
+    plan: free
+

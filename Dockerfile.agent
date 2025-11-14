@@ -18,6 +18,10 @@ RUN pip install --no-cache-dir -r requirements-agent.txt
 COPY agent/ ./agent/
 COPY backend/ ./backend/
 
+# Copy start script
+COPY agent/start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
 # Create non-root user
 RUN useradd --create-home --shell /bin/bash agent
 RUN chown -R agent:agent /app
@@ -27,9 +31,9 @@ USER agent
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import agent.celery_app; print('Agent healthy')" || exit 1
+# Health check - check health server endpoint
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:${PORT:-8080}/health')" || exit 1
 
-# Default command (can be overridden in docker-compose)
-CMD ["celery", "-A", "agent.celery_app", "worker", "--loglevel=info"]
+# Default command - run both Celery worker and health server
+CMD ["/app/start.sh"]

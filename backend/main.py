@@ -35,9 +35,19 @@ app.add_middleware(SlowAPIMiddleware)
 # Add Prometheus metrics
 Instrumentator().instrument(app).expose(app)
 
+# CORS configuration - support both local and Render URLs
+allowed_origins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "https://ai-frontend.onrender.com",
+]
+# Add FRONTEND_URL from environment if set
+if os.getenv("FRONTEND_URL"):
+    allowed_origins.append(os.getenv("FRONTEND_URL"))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],  # Frontend URLs
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -74,6 +84,11 @@ async def on_shutdown():
     # Stop orchestrator integration
     if orchestrator_integration:
         await orchestrator_integration.stop()
+
+@app.get("/health")
+async def health():
+    """Simple health check endpoint for Render and monitoring"""
+    return {"status": "ok"}
 
 @app.get("/health/live")
 async def health_live():
