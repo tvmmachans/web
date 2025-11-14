@@ -15,10 +15,10 @@ services:
           name: ai-postgres
           property: connectionString
       - key: REDIS_URL
-        fromService:
-          name: ai-redis
-          type: redis
-          property: connectionString
+        sync: false
+        # Note: Set manually after Redis service is created
+        # Get the internal Redis URL from Render dashboard
+        # Format: redis://red-xxxxxxxxxxxxxxxxxxxx:6379
       - key: FRONTEND_URL
         fromService:
           name: ai-frontend
@@ -63,20 +63,18 @@ services:
           name: ai-postgres
           property: connectionString
       - key: REDIS_URL
-        fromService:
-          name: ai-redis
-          type: redis
-          property: connectionString
+        sync: false
+        # Note: Set manually after Redis service is created
+        # Get the internal Redis URL from Render dashboard
+        # Format: redis://red-xxxxxxxxxxxxxxxxxxxx:6379
       - key: CELERY_BROKER_URL
-        fromService:
-          name: ai-redis
-          type: redis
-          property: connectionString
+        sync: false
+        # Note: Set manually after Redis service is created
+        # Use the same Redis URL as REDIS_URL
       - key: CELERY_RESULT_BACKEND
-        fromService:
-          name: ai-redis
-          type: redis
-          property: connectionString
+        sync: false
+        # Note: Set manually after Redis service is created
+        # Use the same Redis URL as REDIS_URL
       - key: OPENAI_API_KEY
         sync: false
       - key: BACKEND_API_URL

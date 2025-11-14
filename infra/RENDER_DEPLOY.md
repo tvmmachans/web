@@ -45,7 +45,15 @@ NEXT_PUBLIC_API_BASE_URL=https://ai-backend.onrender.com
 ```
 OPENAI_API_KEY=your_openai_api_key_here
 BACKEND_API_URL=https://ai-backend.onrender.com
+REDIS_URL=redis://red-xxxxxxxxxxxxxxxxxxxx:6379
+CELERY_BROKER_URL=redis://red-xxxxxxxxxxxxxxxxxxxx:6379
+CELERY_RESULT_BACKEND=redis://red-xxxxxxxxxxxxxxxxxxxx:6379
 ```
+
+**Note**: If you get a "redis: is not found" error during Blueprint deployment, you may need to:
+1. Let Render create the Redis service first
+2. Then manually set the `REDIS_URL`, `CELERY_BROKER_URL`, and `CELERY_RESULT_BACKEND` environment variables in each service (backend and agent) using the internal Redis URL from the Render dashboard
+3. The Redis internal URL format is: `redis://red-<instance-id>:6379`
 
 ### Optional Environment Variables
 
