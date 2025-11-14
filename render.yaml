@@ -24,7 +24,6 @@ services:
           name: ai-frontend
           type: web
           property: host
-        value: https://ai-frontend.onrender.com
       - key: PORT
         value: 8000
       - key: PYTHONUNBUFFERED
@@ -44,7 +43,6 @@ services:
           name: ai-backend
           type: web
           property: host
-        value: https://ai-backend.onrender.com
       - key: PORT
         value: 3000
       - key: NODE_ENV
@@ -84,7 +82,6 @@ services:
           name: ai-backend
           type: web
           property: host
-        value: https://ai-backend.onrender.com
       - key: PYTHONUNBUFFERED
         value: "1"
 
