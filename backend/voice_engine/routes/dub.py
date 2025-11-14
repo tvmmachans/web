@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text
 from pydantic import BaseModel
 from typing import Optional
 import logging
@@ -117,7 +118,7 @@ async def process_video_dubbing(
             transcript = extract_transcript_from_audio(audio_path)
 
             # Generate voice for transcript
-            from services.tts_service import tts_service
+            from voice_engine.services.tts_service import tts_service
             voice_audio_data = await tts_service.generate_speech(
                 text=transcript,
                 voice_profile=voice_profile,
@@ -224,7 +225,7 @@ async def get_dubbing_history(
     """Get dubbing history"""
     try:
         result = await db.execute(
-            "SELECT id, video_url, dubbed_video_url, status, progress, duration, created_at, completed_at FROM video_dubs ORDER BY created_at DESC LIMIT :limit OFFSET :skip",
+            text("SELECT id, video_url, dubbed_video_url, status, progress, duration, created_at, completed_at FROM video_dubs ORDER BY created_at DESC LIMIT :limit OFFSET :skip"),
             {"limit": limit, "skip": skip}
         )
         dubs = result.fetchall()

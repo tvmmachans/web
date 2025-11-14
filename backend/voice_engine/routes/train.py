@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text
 from pydantic import BaseModel
 from typing import List, Optional
 import logging
@@ -132,7 +133,7 @@ async def start_voice_training(
 
         # Check if profile has enough samples
         result = await db.execute(
-            "SELECT COUNT(*) FROM audio_samples WHERE voice_profile_id = :profile_id",
+            text("SELECT COUNT(*) FROM audio_samples WHERE voice_profile_id = :profile_id"),
             {"profile_id": profile_id}
         )
         sample_count = result.scalar()
@@ -245,7 +246,7 @@ async def get_training_status(profile_id: int, db: AsyncSession = Depends(get_db
 
         # Get latest training job
         result = await db.execute(
-            "SELECT id, status, progress, error_message, started_at, completed_at FROM training_jobs WHERE voice_profile_id = :profile_id ORDER BY created_at DESC LIMIT 1",
+            text("SELECT id, status, progress, error_message, started_at, completed_at FROM training_jobs WHERE voice_profile_id = :profile_id ORDER BY created_at DESC LIMIT 1"),
             {"profile_id": profile_id}
         )
         job = result.first()
@@ -274,7 +275,7 @@ async def list_voice_profiles(db: AsyncSession = Depends(get_db)):
     """List all voice profiles"""
     try:
         result = await db.execute(
-            "SELECT id, name, description, language, voice_type, training_status, training_progress, quality_score, created_at FROM voice_profiles ORDER BY created_at DESC"
+            text("SELECT id, name, description, language, voice_type, training_status, training_progress, quality_score, created_at FROM voice_profiles ORDER BY created_at DESC")
         )
         profiles = result.fetchall()
 

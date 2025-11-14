@@ -4,8 +4,8 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from typing import Optional
 import os
-from database import async_session
-from models.user import User
+from sqlalchemy import select
+from database import async_session, User
 
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")
 ALGORITHM = "HS256"
@@ -38,14 +38,16 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise credentials_exception
 
     async with async_session() as session:
-        user = await session.query(User).filter(User.username == username).first()
+        result = await session.execute(select(User).where(User.username == username))
+        user = result.scalar_one_or_none()
         if user is None:
             raise credentials_exception
         return user
 
 async def authenticate_user(username: str, password: str):
     async with async_session() as session:
-        user = await session.query(User).filter(User.username == username).first()
+        result = await session.execute(select(User).where(User.username == username))
+        user = result.scalar_one_or_none()
         if not user:
             return False
         if not verify_password(password, user.hashed_password):

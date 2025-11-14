@@ -6,16 +6,20 @@ Handles daily cron jobs, trend updates, and adaptive scheduling.
 import os
 import logging
 import asyncio
+import sys
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
 import json
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
+# Add backend to path
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'backend'))
+
 from ai_engine.learning_manager import LearningManager
 from agent.utils.database import get_recent_analytics
-from backend.database import async_session, PostingOptimization, Trends
-from backend.scheduler import schedule_upload
+from database import async_session, PostingOptimization, Trends
+from scheduler import schedule_upload
 
 logger = logging.getLogger(__name__)
 

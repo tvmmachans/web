@@ -161,7 +161,7 @@ async def get_generation_history(
     """Get voice generation history"""
     try:
         result = await db.execute(
-            "SELECT id, text, audio_url, duration, quality_score, created_at FROM voice_generations ORDER BY created_at DESC LIMIT :limit OFFSET :skip",
+            text("SELECT id, text, audio_url, duration, quality_score, created_at FROM voice_generations ORDER BY created_at DESC LIMIT :limit OFFSET :skip"),
             {"limit": limit, "skip": skip}
         )
         generations = result.fetchall()

@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any
 import asyncio
 import logging
+from sqlalchemy import select, text, desc
 from services.youtube_service import upload_to_youtube
 from services.instagram_service import upload_to_instagram
 from database import async_session, PostingOptimization
@@ -157,15 +158,13 @@ async def get_optimal_posting_time(platform: str, language: str = "ml") -> datet
     try:
         async with async_session() as session:
             # Get optimization data
-            result = await session.execute(
-                session.query(PostingOptimization)
-                .filter(PostingOptimization.platform == platform)
-                .filter(PostingOptimization.language == language)
-                .order_by(PostingOptimization.engagement_score.desc())
-                .limit(1)
-            )
-
-            optimization = result.scalar()
+            query = select(PostingOptimization).where(
+                PostingOptimization.platform == platform,
+                PostingOptimization.language == language
+            ).order_by(desc(PostingOptimization.engagement_score)).limit(1)
+            
+            result = await session.execute(query)
+            optimization = result.scalar_one_or_none()
 
             if optimization:
                 # Calculate next optimal time
@@ -283,16 +282,19 @@ async def get_recent_performance_data() -> Dict[str, Any]:
             # Get performance data from last 7 days
             seven_days_ago = datetime.utcnow() - timedelta(days=7)
 
-            result = await session.execute("""
-                SELECT platform, AVG(engagement_rate) as avg_engagement,
-                       COUNT(*) as post_count,
-                       EXTRACT(hour from posted_at) as hour
-                FROM analytics a
-                JOIN posts p ON a.post_id = p.id
-                WHERE p.posted_at >= $1
-                GROUP BY platform, EXTRACT(hour from posted_at)
-                ORDER BY avg_engagement DESC
-            """, (seven_days_ago,))
+            result = await session.execute(
+                text("""
+                    SELECT platform, AVG(engagement_rate) as avg_engagement,
+                           COUNT(*) as post_count,
+                           EXTRACT(hour from posted_at) as hour
+                    FROM analytics a
+                    JOIN posts p ON a.post_id = p.id
+                    WHERE p.posted_at >= :start_date
+                    GROUP BY platform, EXTRACT(hour from posted_at)
+                    ORDER BY avg_engagement DESC
+                """),
+                {"start_date": seven_days_ago}
+            )
 
             performance_data = result.fetchall()
 
@@ -327,13 +329,12 @@ async def adjust_future_scheduling(performance_data: Dict[str, Any]):
                     best_hour = max(data, key=lambda x: x["avg_engagement"])["hour"]
 
                     # Update or create optimization record
-                    existing = await session.execute(
-                        session.query(PostingOptimization)
-                        .filter(PostingOptimization.platform == platform)
-                        .filter(PostingOptimization.language == "ml")
+                    query = select(PostingOptimization).where(
+                        PostingOptimization.platform == platform,
+                        PostingOptimization.language == "ml"
                     )
-
-                    optimization = existing.scalar()
+                    existing = await session.execute(query)
+                    optimization = existing.scalar_one_or_none()
                     if not optimization:
                         optimization = PostingOptimization(
                             platform=platform,

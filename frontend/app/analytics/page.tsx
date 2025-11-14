@@ -14,8 +14,18 @@ const getApiUrl = () => {
 
 const API_BASE_URL = getApiUrl()
 
+interface AnalyticsData {
+  platform: string
+  total_posts: number
+  total_views: number
+  total_likes: number
+  total_comments: number
+  engagement_rate: number
+  top_hashtags: string[]
+}
+
 export default function AnalyticsPage() {
-  const [analytics, setAnalytics] = useState<any>(null)
+  const [analytics, setAnalytics] = useState<AnalyticsData[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 

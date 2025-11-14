@@ -7,7 +7,7 @@ client = TestClient(app)
 def test_health_endpoint():
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "healthy"}
+    assert response.json() == {"status": "ok"}
 
 def test_upload_endpoint():
     # Test upload endpoint with mock file
