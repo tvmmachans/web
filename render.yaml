@@ -15,10 +15,10 @@ services:
           name: ai-postgres
           property: connectionString
       - key: REDIS_URL
-        sync: false
-        # Note: Set manually after Redis service is created
-        # Get the internal Redis URL from Render dashboard
-        # Format: redis://red-xxxxxxxxxxxxxxxxxxxx:6379
+        fromService:
+          name: ai-redis
+          type: keyvalue
+          property: connectionString
       - key: FRONTEND_URL
         fromService:
           name: ai-frontend
@@ -63,18 +63,20 @@ services:
           name: ai-postgres
           property: connectionString
       - key: REDIS_URL
-        sync: false
-        # Note: Set manually after Redis service is created
-        # Get the internal Redis URL from Render dashboard
-        # Format: redis://red-xxxxxxxxxxxxxxxxxxxx:6379
+        fromService:
+          name: ai-redis
+          type: keyvalue
+          property: connectionString
       - key: CELERY_BROKER_URL
-        sync: false
-        # Note: Set manually after Redis service is created
-        # Use the same Redis URL as REDIS_URL
+        fromService:
+          name: ai-redis
+          type: keyvalue
+          property: connectionString
       - key: CELERY_RESULT_BACKEND
-        sync: false
-        # Note: Set manually after Redis service is created
-        # Use the same Redis URL as REDIS_URL
+        fromService:
+          name: ai-redis
+          type: keyvalue
+          property: connectionString
       - key: OPENAI_API_KEY
         sync: false
       - key: BACKEND_API_URL
@@ -86,13 +88,16 @@ services:
       - key: PYTHONUNBUFFERED
         value: "1"
 
+  # Redis Service (Key-Value Store)
+  - type: keyvalue
+    name: ai-redis
+    plan: free
+    ipAllowList: []  # Allows internal connections only
+    maxmemoryPolicy: allkeys-lru
+
 databases:
   - name: ai-postgres
     plan: free
     databaseName: ai_social
     user: ai_user
-
-redis:
-  - name: ai-redis
-    plan: free
 
