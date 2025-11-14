@@ -12,7 +12,7 @@ RUN \
   if [ -f yarn.lock ]; then yarn --frozen-lockfile --production=false; \
   elif [ -f package-lock.json ]; then npm ci; \
   elif [ -f pnpm-lock.yaml ]; then yarn global add pnpm && pnpm i --frozen-lockfile --prod=false; \
-  else echo "Lockfile not found." && exit 1; \
+  else echo "No lockfile found, using npm install"; npm install; \
   fi
 
 # Stage 2: Build
@@ -55,11 +55,10 @@ USER nextjs
 
 EXPOSE 3000
 
-# Use PORT environment variable if set (for Render), otherwise default to 3000
-ENV PORT=${PORT:-3000}
 # set hostname to localhost
 ENV HOSTNAME "0.0.0.0"
 
 # server.js is created by next build from the standalone output
 # https://nextjs.org/docs/pages/api-reference/next-config-js/output
+# PORT is set by Render automatically, Next.js will use it
 CMD node server.js
