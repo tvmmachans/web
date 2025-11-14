@@ -9,10 +9,14 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
 
 from openai import OpenAI
 
-from agent.config.settings import (EMAIL_ENABLED, EMAIL_RECIPIENT,
-                                   REPORT_GENERATION_DAY,
-                                   REPORT_GENERATION_HOUR, WHATSAPP_ENABLED,
-                                   WHATSAPP_NUMBER)
+from agent.config.settings import (
+    EMAIL_ENABLED,
+    EMAIL_RECIPIENT,
+    REPORT_GENERATION_DAY,
+    REPORT_GENERATION_HOUR,
+    WHATSAPP_ENABLED,
+    WHATSAPP_NUMBER,
+)
 from agent.services.analytics_agent import AnalyticsAgent
 
 logger = logging.getLogger(__name__)

@@ -3,8 +3,7 @@ from typing import Dict, List, Optional
 from database import get_db
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from services.ai_service import (generate_caption_service,
-                                 generate_subtitles_service)
+from services.ai_service import generate_caption_service, generate_subtitles_service
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()

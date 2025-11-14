@@ -2,8 +2,15 @@ import json
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
-from database import (Analytics, LearningData, ModelMetrics, Post,
-                      PostingOptimization, Trends, get_db)
+from database import (
+    Analytics,
+    LearningData,
+    ModelMetrics,
+    Post,
+    PostingOptimization,
+    Trends,
+    get_db,
+)
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import desc, func, select, text

@@ -1,5 +1,4 @@
 import pytest
-
 from services.ai_service import AIService
 from services.video_service import VideoService
 

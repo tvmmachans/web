@@ -67,6 +67,8 @@ jobs:
       run: |
         cd backend
         python -m pytest tests/ -v --cov=. --cov-report=xml
+      env:
+        PYTHONPATH: ${{ github.workspace }}
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:

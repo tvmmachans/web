@@ -39,6 +39,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@localhost/test
           REDIS_URL: redis://localhost:6379/0
+          PYTHONPATH: ${{ github.workspace }}
       
 
   test-frontend:

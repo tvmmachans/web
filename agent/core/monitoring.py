@@ -17,9 +17,12 @@ import psutil
 # Add backend to path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
 
-from agent.config.settings import (BACKEND_API_KEY, BACKEND_API_URL,
-                                   MAX_POSTS_PER_CHECK,
-                                   MONITORING_INTERVAL_HOURS)
+from agent.config.settings import (
+    BACKEND_API_KEY,
+    BACKEND_API_URL,
+    MAX_POSTS_PER_CHECK,
+    MONITORING_INTERVAL_HOURS,
+)
 
 logger = logging.getLogger(__name__)
 

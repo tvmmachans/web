@@ -7,6 +7,7 @@ from database import init_db
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 # Import orchestrator event bus integration
 from orchestrator_event_integration import OrchestratorEventIntegration
 from prometheus_fastapi_instrumentator import Instrumentator

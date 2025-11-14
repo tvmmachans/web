@@ -4,8 +4,7 @@ from typing import Optional
 from database import Analytics, Post, get_db
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from services.instagram_service import (get_instagram_analytics,
-                                        upload_to_instagram)
+from services.instagram_service import get_instagram_analytics, upload_to_instagram
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()

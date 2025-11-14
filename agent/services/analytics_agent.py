@@ -10,8 +10,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
 
 from openai import OpenAI
 
-from agent.config.settings import (ANALYTICS_RETENTION_DAYS,
-                                   MIN_ENGAGEMENT_RATE_THRESHOLD)
+from agent.config.settings import (
+    ANALYTICS_RETENTION_DAYS,
+    MIN_ENGAGEMENT_RATE_THRESHOLD,
+)
 from agent.utils.database import create_analytics_record, get_recent_analytics
 
 logger = logging.getLogger(__name__)

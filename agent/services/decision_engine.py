@@ -10,10 +10,14 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
 
 from openai import OpenAI
 
-from agent.config.settings import (CONTENT_CATEGORIES,
-                                   DEFAULT_BEST_POSTING_HOURS,
-                                   MALAYALAM_KEYWORDS, MAX_TOKENS_DECISION,
-                                   OPENAI_MODEL, TEMPERATURE_DECISION)
+from agent.config.settings import (
+    CONTENT_CATEGORIES,
+    DEFAULT_BEST_POSTING_HOURS,
+    MALAYALAM_KEYWORDS,
+    MAX_TOKENS_DECISION,
+    OPENAI_MODEL,
+    TEMPERATURE_DECISION,
+)
 from agent.utils.database import get_recent_analytics
 
 logger = logging.getLogger(__name__)

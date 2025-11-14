@@ -3,8 +3,7 @@ from typing import Optional
 from database import Post, get_db
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel
-from services.ai_service import (generate_caption_service,
-                                 generate_subtitles_service)
+from services.ai_service import generate_caption_service, generate_subtitles_service
 from services.video_service import upload_video_service
 from sqlalchemy.ext.asyncio import AsyncSession
 

@@ -4,13 +4,19 @@ from datetime import datetime
 from typing import List, Optional
 
 from database import get_db
-from fastapi import (APIRouter, BackgroundTasks, Depends, File, Form,
-                     HTTPException, UploadFile)
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
+)
 from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
-from voice_engine.models.voice_models import (AudioSample, TrainingJob,
-                                              VoiceProfile)
+from voice_engine.models.voice_models import AudioSample, TrainingJob, VoiceProfile
 from voice_engine.services.storage_service import storage_service
 
 logger = logging.getLogger(__name__)

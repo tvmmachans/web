@@ -11,12 +11,16 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies
-COPY agent/requirements-agent.txt .
-RUN pip install --no-cache-dir -r requirements-agent.txt
+COPY requirements.txt ./requirements.txt
+COPY agent/requirements-agent.txt ./requirements-agent.txt
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir -r requirements-agent.txt
 
 # Copy agent code
 COPY agent/ ./agent/
 COPY backend/ ./backend/
+COPY ai_engine/ ./ai_engine/
+COPY orchestrator/ ./orchestrator/
 
 # Copy start script
 COPY agent/start.sh /app/start.sh
@@ -33,7 +37,7 @@ ENV PYTHONUNBUFFERED=1
 
 # Health check - check health server endpoint
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:${PORT:-8080}/health')" || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:${PORT:-8080}/health')" || exit 1
 
 # Default command - run both Celery worker and health server
 CMD ["/app/start.sh"]

@@ -3,7 +3,6 @@ import tempfile
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-
 from services.ai_service import AIService
 from services.instagram_service import upload_to_instagram
 from services.video_service import VideoService

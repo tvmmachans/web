@@ -10,10 +10,13 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
 
 from openai import OpenAI
 
-from agent.config.settings import (COMMENT_CHECK_INTERVAL_MINUTES,
-                                   INSTAGRAM_ACCESS_TOKEN,
-                                   MALAYALAM_LANGUAGE_CODE,
-                                   MAX_COMMENTS_PER_POST, YOUTUBE_API_KEY)
+from agent.config.settings import (
+    COMMENT_CHECK_INTERVAL_MINUTES,
+    INSTAGRAM_ACCESS_TOKEN,
+    MALAYALAM_LANGUAGE_CODE,
+    MAX_COMMENTS_PER_POST,
+    YOUTUBE_API_KEY,
+)
 from agent.utils.database import get_db_session
 
 logger = logging.getLogger(__name__)
