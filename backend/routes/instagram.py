@@ -5,6 +5,7 @@ from services.instagram_service import upload_to_instagram, get_instagram_analyt
 from models.post import Post, Analytics
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 
 router = APIRouter()
 

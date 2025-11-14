@@ -77,8 +77,6 @@ async def on_startup():
 
 @app.on_event("shutdown")
 async def on_shutdown():
-    global orchestrator_integration
-
     scheduler.shutdown_scheduler()
 
     # Stop orchestrator integration

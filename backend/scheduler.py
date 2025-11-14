@@ -1,6 +1,7 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.date import DateTrigger
 from datetime import datetime, timedelta
+from typing import Dict, Any
 import asyncio
 import logging
 from services.youtube_service import upload_to_youtube

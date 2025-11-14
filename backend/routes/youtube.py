@@ -5,6 +5,7 @@ from services.youtube_service import upload_to_youtube
 from models.post import Post, Analytics
 from pydantic import BaseModel
 from typing import Optional, List
+from datetime import datetime
 import os
 import tempfile
 

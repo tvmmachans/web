@@ -13,6 +13,8 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import soundfile as sf
 from scipy.io import wavfile
 
+logger = logging.getLogger(__name__)
+
 # Import Coqui TTS if available
 try:
     from TTS.api import TTS
@@ -23,8 +25,6 @@ except ImportError:
 
 from backend.database import async_session, Post
 from backend.voice_engine.services.tts_service import TTSService
-
-logger = logging.getLogger(__name__)
 
 class EmotionAwareTTS:
     """
