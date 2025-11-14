@@ -11,7 +11,7 @@ from transformers import pipeline
 
 from ai_engine.learning_manager import LearningManager
 from ai_engine.advanced_models import AdvancedMLModels
-from backend.database import async_session, LearningData
+from database import async_session, LearningData
 
 logger = logging.getLogger(__name__)
 

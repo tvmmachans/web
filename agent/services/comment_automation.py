@@ -68,7 +68,7 @@ class CommentAutomation:
         Get posts that should be checked for comments.
         """
         try:
-            from models.post import Post
+            from database import Post
             from sqlalchemy import select, and_, or_
             from datetime import datetime, timedelta
 

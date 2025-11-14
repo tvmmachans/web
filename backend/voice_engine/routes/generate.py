@@ -1,12 +1,13 @@
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text, select
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
 import logging
 from database import get_db
-from services.tts_service import tts_service
-from services.storage_service import storage_service
-from models.voice_models import VoiceProfile, VoiceGeneration
+from voice_engine.services.tts_service import tts_service
+from voice_engine.services.storage_service import storage_service
+from voice_engine.models.voice_models import VoiceProfile, VoiceGeneration
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -133,7 +134,7 @@ async def analyze_and_update_quality(generation_id: int, audio_url: str, db: Asy
 async def get_voice_profiles(db: AsyncSession = Depends(get_db)):
     """Get available voice profiles"""
     try:
-        result = await db.execute("SELECT id, name, language, voice_type, quality_score FROM voice_profiles WHERE training_status = 'completed'")
+        result = await db.execute(text("SELECT id, name, language, voice_type, quality_score FROM voice_profiles WHERE training_status = 'completed'"))
         profiles = result.fetchall()
 
         return [

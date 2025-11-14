@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from database import get_db
 from services.instagram_service import upload_to_instagram, get_instagram_analytics
-from models.post import Post, Analytics
+from database import Post, Analytics
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime

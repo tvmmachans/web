@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import func, desc, and_, or_
+from sqlalchemy import func, desc, and_, or_, select, text
+from sqlalchemy.orm import selectinload
 from database import get_db, Trends, LearningData, Analytics, Post
 from pydantic import BaseModel
 from typing import List, Dict, Optional
@@ -48,14 +49,11 @@ async def get_weekly_trend_forecast(
         week_end = week_start + timedelta(days=6)  # Sunday
 
         # Get current trends with predictions
-        trends_result = await db.execute(
-            db.query(Trends)
-            .filter(Trends.language == language)
-            .filter(Trends.created_at >= week_start - timedelta(days=7))
-            .order_by(desc(Trends.velocity))
-            .limit(20)
-        )
-
+        trends_query = select(Trends).where(
+            Trends.language == language,
+            Trends.created_at >= week_start - timedelta(days=7)
+        ).order_by(desc(Trends.velocity)).limit(20)
+        trends_result = await db.execute(trends_query)
         trends = trends_result.scalars().all()
 
         # Generate predictions for top trends
@@ -104,13 +102,11 @@ async def get_trend_analysis(
         start_date = end_date - timedelta(days=days)
 
         # Get current trends
-        current_trends_result = await db.execute(
-            db.query(Trends)
-            .filter(Trends.language == language)
-            .filter(Trends.created_at >= start_date)
-            .order_by(desc(Trends.velocity))
-            .limit(10)
-        )
+        current_trends_query = select(Trends).where(
+            Trends.language == language,
+            Trends.created_at >= start_date
+        ).order_by(desc(Trends.velocity)).limit(10)
+        current_trends_result = await db.execute(current_trends_query)
 
         current_trends = []
         for trend in current_trends_result.scalars().all():
@@ -124,15 +120,13 @@ async def get_trend_analysis(
             })
 
         # Emerging trends (high velocity, recent)
-        emerging_trends_result = await db.execute(
-            db.query(Trends)
-            .filter(Trends.language == language)
-            .filter(Trends.created_at >= start_date)
-            .filter(Trends.velocity > 50)
-            .filter(Trends.freshness > 0.7)
-            .order_by(desc(Trends.velocity))
-            .limit(5)
-        )
+        emerging_trends_query = select(Trends).where(
+            Trends.language == language,
+            Trends.created_at >= start_date,
+            Trends.velocity > 50,
+            Trends.freshness > 0.7
+        ).order_by(desc(Trends.velocity)).limit(5)
+        emerging_trends_result = await db.execute(emerging_trends_query)
 
         emerging_trends = []
         for trend in emerging_trends_result.scalars().all():
@@ -145,14 +139,12 @@ async def get_trend_analysis(
             })
 
         # Declining trends (low velocity, older)
-        declining_trends_result = await db.execute(
-            db.query(Trends)
-            .filter(Trends.language == language)
-            .filter(Trends.created_at >= start_date - timedelta(days=14))
-            .filter(Trends.velocity < 20)
-            .order_by(Trends.velocity)
-            .limit(5)
-        )
+        declining_trends_query = select(Trends).where(
+            Trends.language == language,
+            Trends.created_at >= start_date - timedelta(days=14),
+            Trends.velocity < 20
+        ).order_by(Trends.velocity).limit(5)
+        declining_trends_result = await db.execute(declining_trends_query)
 
         declining_trends = []
         for trend in declining_trends_result.scalars().all():
@@ -165,15 +157,18 @@ async def get_trend_analysis(
             })
 
         # Cross-platform insights
-        cross_platform_result = await db.execute("""
-            SELECT platform, COUNT(*) as trend_count,
-                   AVG(velocity) as avg_velocity,
-                   AVG(trend_strength) as avg_strength
-            FROM trends
-            WHERE language = ? AND created_at >= ?
-            GROUP BY platform
-            ORDER BY trend_count DESC
-        """, (language, start_date))
+        cross_platform_result = await db.execute(
+            text("""
+                SELECT platform, COUNT(*) as trend_count,
+                       AVG(velocity) as avg_velocity,
+                       AVG(trend_strength) as avg_strength
+                FROM trends
+                WHERE language = :language AND created_at >= :start_date
+                GROUP BY platform
+                ORDER BY trend_count DESC
+            """),
+            {"language": language, "start_date": start_date}
+        )
 
         cross_platform_insights = []
         for row in cross_platform_result.fetchall():
@@ -191,14 +186,17 @@ async def get_trend_analysis(
         }
 
         # Malayalam-specific insights
-        ml_insights_result = await db.execute("""
-            SELECT topic, platform, velocity, trend_strength,
-                   cross_platform_count, freshness
-            FROM trends
-            WHERE language = 'ml' AND created_at >= ?
-            ORDER BY velocity DESC
-            LIMIT 5
-        """, (start_date,))
+        ml_insights_result = await db.execute(
+            text("""
+                SELECT topic, platform, velocity, trend_strength,
+                       cross_platform_count, freshness
+                FROM trends
+                WHERE language = 'ml' AND created_at >= :start_date
+                ORDER BY velocity DESC
+                LIMIT 5
+            """),
+            {"start_date": start_date}
+        )
 
         for row in ml_insights_result.fetchall():
             language_insights["ml"].append({
@@ -232,28 +230,22 @@ async def get_topic_prediction(
     """
     try:
         # Get trend data for the topic
-        trend_result = await db.execute(
-            db.query(Trends)
-            .filter(Trends.topic.ilike(f"%{topic}%"))
-            .filter(Trends.language == language)
-            .order_by(desc(Trends.created_at))
-            .limit(1)
-        )
-
-        trend = trend_result.scalar()
+        trend_query = select(Trends).where(
+            Trends.topic.ilike(f"%{topic}%"),
+            Trends.language == language
+        ).order_by(desc(Trends.created_at)).limit(1)
+        trend_result = await db.execute(trend_query)
+        trend = trend_result.scalar_one_or_none()
 
         if not trend:
             raise HTTPException(status_code=404, detail="Topic not found")
 
         # Get historical data for prediction
-        historical_result = await db.execute(
-            db.query(Trends)
-            .filter(Trends.topic.ilike(f"%{topic}%"))
-            .filter(Trends.language == language)
-            .order_by(Trends.created_at)
-            .limit(10)
-        )
-
+        historical_query = select(Trends).where(
+            Trends.topic.ilike(f"%{topic}%"),
+            Trends.language == language
+        ).order_by(Trends.created_at).limit(10)
+        historical_result = await db.execute(historical_query)
         historical_data = historical_result.scalars().all()
 
         # Simple prediction algorithm (in production, use ML models)

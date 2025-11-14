@@ -1,12 +1,13 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text, select
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 import logging
 from database import get_db
-from services.tts_service import tts_service
-from services.storage_service import storage_service
-from models.voice_models import VoiceProfile, AudioSample
+from voice_engine.services.tts_service import tts_service
+from voice_engine.services.storage_service import storage_service
+from voice_engine.models.voice_models import VoiceProfile, AudioSample
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -95,7 +96,7 @@ async def get_profile_samples(profile_id: int, db: AsyncSession = Depends(get_db
     """Get audio samples for a voice profile"""
     try:
         result = await db.execute(
-            "SELECT id, audio_url, transcript, duration, quality_score, created_at FROM audio_samples WHERE voice_profile_id = :profile_id ORDER BY created_at DESC",
+            text("SELECT id, audio_url, transcript, duration, quality_score, created_at FROM audio_samples WHERE voice_profile_id = :profile_id ORDER BY created_at DESC"),
             {"profile_id": profile_id}
         )
         samples = result.fetchall()
@@ -153,14 +154,14 @@ async def get_profile_stats(profile_id: int, db: AsyncSession = Depends(get_db))
     try:
         # Get sample count and average quality
         result = await db.execute(
-            "SELECT COUNT(*) as sample_count, AVG(quality_score) as avg_quality, AVG(duration) as avg_duration FROM audio_samples WHERE voice_profile_id = :profile_id",
+            text("SELECT COUNT(*) as sample_count, AVG(quality_score) as avg_quality, AVG(duration) as avg_duration FROM audio_samples WHERE voice_profile_id = :profile_id"),
             {"profile_id": profile_id}
         )
         stats = result.first()
 
         # Get training jobs count
         result = await db.execute(
-            "SELECT COUNT(*) as training_jobs FROM training_jobs WHERE voice_profile_id = :profile_id",
+            text("SELECT COUNT(*) as training_jobs FROM training_jobs WHERE voice_profile_id = :profile_id"),
             {"profile_id": profile_id}
         )
         training_count = result.scalar()

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from database import get_db
-from models.post import Post
+from database import Post
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional

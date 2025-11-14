@@ -22,7 +22,7 @@ async def upload_scheduled_post(post_id: int, platform: str, title: str, descrip
     Upload a scheduled post to the specified platform.
     """
     async with async_session() as session:
-        from models.post import Post, Analytics
+        from database import Post, Analytics
 
         # Get post from database
         post = await session.get(Post, post_id)

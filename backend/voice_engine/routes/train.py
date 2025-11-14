@@ -5,8 +5,8 @@ from typing import List, Optional
 import logging
 import uuid
 from database import get_db
-from services.storage_service import storage_service
-from models.voice_models import VoiceProfile, TrainingJob, AudioSample
+from voice_engine.services.storage_service import storage_service
+from voice_engine.models.voice_models import VoiceProfile, TrainingJob, AudioSample
 from datetime import datetime
 
 logger = logging.getLogger(__name__)

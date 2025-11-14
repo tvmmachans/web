@@ -23,8 +23,8 @@ except ImportError:
     COQUI_AVAILABLE = False
     logger.warning("Coqui TTS not available, using fallback TTS")
 
-from backend.database import async_session, Post
-from backend.voice_engine.services.tts_service import TTSService
+from database import async_session, Post
+from voice_engine.services.tts_service import TTSService
 
 class EmotionAwareTTS:
     """
