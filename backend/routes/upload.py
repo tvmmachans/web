@@ -1,11 +1,12 @@
-from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from database import get_db
-from services.video_service import upload_video_service
-from services.ai_service import generate_caption_service, generate_subtitles_service
-from database import Post
-from pydantic import BaseModel
 from typing import Optional
+
+from database import Post, get_db
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from pydantic import BaseModel
+from services.ai_service import (generate_caption_service,
+                                 generate_subtitles_service)
+from services.video_service import upload_video_service
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 

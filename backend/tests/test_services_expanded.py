@@ -1,11 +1,13 @@
-import pytest
-from unittest.mock import Mock, patch, AsyncMock
-from backend.services.ai_service import AIService
-from backend.services.video_service import VideoService
-from backend.services.youtube_service import upload_to_youtube
-from backend.services.instagram_service import upload_to_instagram
-import tempfile
 import os
+import tempfile
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
+
+from services.ai_service import AIService
+from services.instagram_service import upload_to_instagram
+from services.video_service import VideoService
+from services.youtube_service import upload_to_youtube
 
 
 class TestAIService:
@@ -150,7 +152,7 @@ class TestInstagramService:
 
 class TestSchedulerService:
     def setup_method(self):
-        from backend.scheduler import scheduler
+        from scheduler import scheduler
 
         self.scheduler = scheduler
 

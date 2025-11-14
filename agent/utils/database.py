@@ -1,13 +1,14 @@
+import logging
 import os
 import sys
+
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-import logging
 
 # Add backend to path to reuse models
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
 
-from database import Base, Post, Analytics, User
+from database import Analytics, Base, Post, User
 
 logger = logging.getLogger(__name__)
 
@@ -65,8 +66,9 @@ async def get_recent_analytics(session: AsyncSession, days: int = 30):
     Get recent analytics data for decision making.
     """
     try:
-        from sqlalchemy import select
         from datetime import datetime, timedelta
+
+        from sqlalchemy import select
 
         cutoff_date = datetime.utcnow() - timedelta(days=days)
 

@@ -4,11 +4,9 @@ Provides background task scheduling and execution.
 """
 
 from celery import Celery
-from agent.config.settings import (
-    CELERY_BROKER_URL,
-    CELERY_RESULT_BACKEND,
-    CELERY_TIMEZONE,
-)
+
+from agent.config.settings import (CELERY_BROKER_URL, CELERY_RESULT_BACKEND,
+                                   CELERY_TIMEZONE)
 
 # Create Celery app
 celery_app = Celery(

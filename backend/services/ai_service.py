@@ -1,17 +1,18 @@
-import os
-import logging
-import whisper
-from openai import OpenAI
-from typing import Dict, List, Optional, Any
-import tempfile
-import json
 import asyncio
+import json
+import logging
+import os
+import tempfile
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import whisper
+from database import LearningData, async_session
+from openai import OpenAI
 from transformers import pipeline
 
-from ai_engine.learning_manager import LearningManager
 from ai_engine.advanced_models import AdvancedMLModels
-from database import async_session, LearningData
+from ai_engine.learning_manager import LearningManager
 
 logger = logging.getLogger(__name__)
 

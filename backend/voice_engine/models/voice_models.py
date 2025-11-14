@@ -1,8 +1,10 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import Column, Integer, String, DateTime, Text, Float, JSON, ForeignKey
-from datetime import datetime
-import sys
 import os
+import sys
+from datetime import datetime
+
+from sqlalchemy import (JSON, Column, DateTime, Float, ForeignKey, Integer,
+                        String, Text)
+from sqlalchemy.ext.asyncio import AsyncSession
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 from database import Base

@@ -1,21 +1,19 @@
-import os
-import logging
-from typing import List, Dict, Any, Optional
-from datetime import datetime, timedelta
 import asyncio
+import logging
+import os
 import sys
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 
 # Add backend to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
 
 from openai import OpenAI
-from agent.config.settings import (
-    COMMENT_CHECK_INTERVAL_MINUTES,
-    MAX_COMMENTS_PER_POST,
-    MALAYALAM_LANGUAGE_CODE,
-    YOUTUBE_API_KEY,
-    INSTAGRAM_ACCESS_TOKEN,
-)
+
+from agent.config.settings import (COMMENT_CHECK_INTERVAL_MINUTES,
+                                   INSTAGRAM_ACCESS_TOKEN,
+                                   MALAYALAM_LANGUAGE_CODE,
+                                   MAX_COMMENTS_PER_POST, YOUTUBE_API_KEY)
 from agent.utils.database import get_db_session
 
 logger = logging.getLogger(__name__)
@@ -74,9 +72,10 @@ class CommentAutomation:
         Get posts that should be checked for comments.
         """
         try:
-            from database import Post
-            from sqlalchemy import select, and_, or_
             from datetime import datetime, timedelta
+
+            from database import Post
+            from sqlalchemy import and_, or_, select
 
             # Get posts from last 7 days that are posted
             cutoff_date = datetime.utcnow() - timedelta(days=7)

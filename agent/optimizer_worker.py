@@ -3,23 +3,25 @@ Agent Optimizer Worker for continuous optimization and learning.
 Handles daily cron jobs, trend updates, and adaptive scheduling.
 """
 
-import os
-import logging
 import asyncio
-import sys
-from typing import Dict, Any, List, Optional
-from datetime import datetime, timedelta
 import json
+import logging
+import os
+import sys
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 # Add backend to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "backend"))
 
-from ai_engine.learning_manager import LearningManager
-from agent.utils.database import get_recent_analytics
-from database import async_session, PostingOptimization, Trends
+from database import PostingOptimization, Trends, async_session
 from scheduler import schedule_upload
+
+from agent.utils.database import get_recent_analytics
+from ai_engine.learning_manager import LearningManager
 
 logger = logging.getLogger(__name__)
 

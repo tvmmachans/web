@@ -5,23 +5,21 @@ Now uses API-based communication with the backend instead of direct DB access.
 
 import asyncio
 import logging
-import httpx
-from typing import List, Dict, Any
-from datetime import datetime, timedelta
-import sys
 import os
-import psutil
+import sys
 import time
+from datetime import datetime, timedelta
+from typing import Any, Dict, List
+
+import httpx
+import psutil
 
 # Add backend to path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
 
-from agent.config.settings import (
-    MONITORING_INTERVAL_HOURS,
-    MAX_POSTS_PER_CHECK,
-    BACKEND_API_URL,
-    BACKEND_API_KEY,
-)
+from agent.config.settings import (BACKEND_API_KEY, BACKEND_API_URL,
+                                   MAX_POSTS_PER_CHECK,
+                                   MONITORING_INTERVAL_HOURS)
 
 logger = logging.getLogger(__name__)
 

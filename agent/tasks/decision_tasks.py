@@ -3,6 +3,7 @@ Celery tasks for decision engine.
 """
 
 import logging
+
 from agent.celery_app import celery_app
 from agent.services.decision_engine import DecisionEngine
 

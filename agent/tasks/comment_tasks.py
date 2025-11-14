@@ -3,6 +3,7 @@ Celery tasks for comment automation.
 """
 
 import logging
+
 from agent.celery_app import celery_app
 from agent.services.comment_automation import CommentAutomation
 

@@ -1,7 +1,9 @@
+import json
+
 import pytest
 from fastapi.testclient import TestClient
-from backend.main import app
-import json
+
+from main import app
 
 client = TestClient(app)
 

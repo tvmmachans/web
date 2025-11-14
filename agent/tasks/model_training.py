@@ -1,13 +1,15 @@
+import asyncio
+import logging
+import os
+from datetime import datetime, timedelta
+
+import joblib
 from celery import Celery
+from database import Analytics, LearningData, ModelMetrics, Post, async_session
+from sklearn.metrics import mean_absolute_error, r2_score
+
 from ai_engine.advanced_models import AdvancedMLModels
 from ai_engine.learning_manager import LearningManager
-from database import async_session, LearningData, Analytics, Post, ModelMetrics
-from datetime import datetime, timedelta
-import logging
-import asyncio
-import joblib
-import os
-from sklearn.metrics import mean_absolute_error, r2_score
 
 logger = logging.getLogger(__name__)
 

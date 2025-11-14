@@ -2,14 +2,14 @@ import asyncio
 import logging
 import signal
 import sys
-from typing import Dict, Any
 from datetime import datetime
+from typing import Any, Dict
 
+from agent.config.settings import AGENT_NAME, AGENT_VERSION
 from agent.core.monitoring import MonitoringService
+from agent.orchestrator_integration import OrchestratorEventIntegration
 from agent.services.comment_automation import CommentAutomation
 from agent.services.report_generator import ReportGenerator
-from agent.config.settings import AGENT_NAME, AGENT_VERSION
-from agent.orchestrator_integration import OrchestratorEventIntegration
 
 logger = logging.getLogger(__name__)
 

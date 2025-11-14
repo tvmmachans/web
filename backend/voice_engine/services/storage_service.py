@@ -1,11 +1,12 @@
+import logging
 import os
+import uuid
+from pathlib import Path
+from typing import BinaryIO, Optional
+
 import boto3
 from minio import Minio
 from minio.error import S3Error
-from typing import Optional, BinaryIO
-import logging
-from pathlib import Path
-import uuid
 
 logger = logging.getLogger(__name__)
 

@@ -3,6 +3,7 @@ Celery tasks for content repurposing.
 """
 
 import logging
+
 from agent.celery_app import celery_app
 from agent.services.content_repurposer import ContentRepurposer
 

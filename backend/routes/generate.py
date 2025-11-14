@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Dict, List, Optional
+
 from database import get_db
-from services.ai_service import generate_caption_service, generate_subtitles_service
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from typing import List, Dict, Optional
+from services.ai_service import (generate_caption_service,
+                                 generate_subtitles_service)
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 

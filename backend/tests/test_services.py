@@ -1,6 +1,7 @@
 import pytest
-from backend.services.ai_service import AIService
-from backend.services.video_service import VideoService
+
+from services.ai_service import AIService
+from services.video_service import VideoService
 
 
 def test_ai_service_generate_content():

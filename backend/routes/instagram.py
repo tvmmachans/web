@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from database import get_db
-from services.instagram_service import upload_to_instagram, get_instagram_analytics
-from database import Post, Analytics
-from pydantic import BaseModel
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
+from database import Analytics, Post, get_db
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from services.instagram_service import (get_instagram_analytics,
+                                        upload_to_instagram)
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 

@@ -6,14 +6,14 @@ Main entry point for running the agent service.
 
 import asyncio
 import logging
-import sys
 import os
+import sys
 
 # Add current directory to path
 sys.path.insert(0, os.path.dirname(__file__))
 
+from agent.config.settings import LOG_FILE, LOG_LEVEL
 from agent.core.orchestrator import AgentOrchestrator
-from agent.config.settings import LOG_LEVEL, LOG_FILE
 
 
 def setup_logging():

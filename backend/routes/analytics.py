@@ -1,20 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import func, desc, select, text
-from sqlalchemy.orm import selectinload
-from database import (
-    get_db,
-    Trends,
-    LearningData,
-    ModelMetrics,
-    PostingOptimization,
-    Post,
-    Analytics,
-)
-from pydantic import BaseModel
-from typing import List, Dict, Optional
-from datetime import datetime, timedelta
 import json
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional
+
+from database import (Analytics, LearningData, ModelMetrics, Post,
+                      PostingOptimization, Trends, get_db)
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy import desc, func, select, text
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 router = APIRouter()
 

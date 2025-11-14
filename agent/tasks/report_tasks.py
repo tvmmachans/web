@@ -3,6 +3,7 @@ Celery tasks for report generation.
 """
 
 import logging
+
 from agent.celery_app import celery_app
 from agent.services.report_generator import ReportGenerator
 

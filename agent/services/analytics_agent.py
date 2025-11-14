@@ -1,19 +1,18 @@
-import os
 import logging
-from typing import Dict, Any, List
-from datetime import datetime, timedelta
+import os
 import statistics
 import sys
+from datetime import datetime, timedelta
+from typing import Any, Dict, List
 
 # Add backend to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
 
-from agent.config.settings import (
-    MIN_ENGAGEMENT_RATE_THRESHOLD,
-    ANALYTICS_RETENTION_DAYS,
-)
-from agent.utils.database import get_recent_analytics, create_analytics_record
 from openai import OpenAI
+
+from agent.config.settings import (ANALYTICS_RETENTION_DAYS,
+                                   MIN_ENGAGEMENT_RATE_THRESHOLD)
+from agent.utils.database import create_analytics_record, get_recent_analytics
 
 logger = logging.getLogger(__name__)
 

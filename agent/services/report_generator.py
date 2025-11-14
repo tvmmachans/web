@@ -1,22 +1,19 @@
-import os
 import logging
-from typing import Dict, Any, List
-from datetime import datetime, timedelta
+import os
 import sys
+from datetime import datetime, timedelta
+from typing import Any, Dict, List
 
 # Add backend to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
 
-from agent.config.settings import (
-    REPORT_GENERATION_DAY,
-    REPORT_GENERATION_HOUR,
-    EMAIL_ENABLED,
-    WHATSAPP_ENABLED,
-    EMAIL_RECIPIENT,
-    WHATSAPP_NUMBER,
-)
-from agent.services.analytics_agent import AnalyticsAgent
 from openai import OpenAI
+
+from agent.config.settings import (EMAIL_ENABLED, EMAIL_RECIPIENT,
+                                   REPORT_GENERATION_DAY,
+                                   REPORT_GENERATION_HOUR, WHATSAPP_ENABLED,
+                                   WHATSAPP_NUMBER)
+from agent.services.analytics_agent import AnalyticsAgent
 
 logger = logging.getLogger(__name__)
 

@@ -1,25 +1,25 @@
-import os
 import asyncio
 import logging
+import os
+
+import scheduler
+from database import init_db
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from prometheus_fastapi_instrumentator import Instrumentator
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded
-from slowapi.middleware import SlowAPIMiddleware
-from database import init_db
-from routes.analytics import router as analytics_router
-from routes.upload import router as upload_router
-from routes.schedule import router as schedule_router
-from routes.generate import router as generate_router
-from routes.youtube import router as youtube_router
-from routes.instagram import router as instagram_router
-import scheduler
-from dotenv import load_dotenv
-
 # Import orchestrator event bus integration
 from orchestrator_event_integration import OrchestratorEventIntegration
+from prometheus_fastapi_instrumentator import Instrumentator
+from routes.analytics import router as analytics_router
+from routes.generate import router as generate_router
+from routes.instagram import router as instagram_router
+from routes.schedule import router as schedule_router
+from routes.upload import router as upload_router
+from routes.youtube import router as youtube_router
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.util import get_remote_address
 
 load_dotenv()
 

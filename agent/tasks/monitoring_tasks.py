@@ -3,6 +3,7 @@ Celery tasks for monitoring service.
 """
 
 import logging
+
 from agent.celery_app import celery_app
 from agent.core.monitoring import MonitoringService
 

@@ -1,14 +1,15 @@
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import text, select
-from pydantic import BaseModel
-from typing import Optional, Dict, Any
 import logging
-from database import get_db
-from voice_engine.services.tts_service import tts_service
-from voice_engine.services.storage_service import storage_service
-from voice_engine.models.voice_models import VoiceProfile, VoiceGeneration
 from datetime import datetime
+from typing import Any, Dict, Optional
+
+from database import get_db
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy import select, text
+from sqlalchemy.ext.asyncio import AsyncSession
+from voice_engine.models.voice_models import VoiceGeneration, VoiceProfile
+from voice_engine.services.storage_service import storage_service
+from voice_engine.services.tts_service import tts_service
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -108,8 +109,8 @@ async def analyze_and_update_quality(
         audio_data = await storage_service.download_file(audio_url)
 
         # Save temporarily for analysis
-        import tempfile
         import os
+        import tempfile
 
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
             temp_file.write(audio_data)

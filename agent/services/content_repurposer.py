@@ -1,15 +1,17 @@
-import os
 import logging
-import tempfile
+import os
 import subprocess
-from typing import Dict, Any, Optional
 import sys
+import tempfile
+from typing import Any, Dict, Optional
 
 # Add backend to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
 
 import requests
-from agent.config.settings import CLIP_DURATION_SECONDS, CLIP_START_OFFSET_SECONDS
+
+from agent.config.settings import (CLIP_DURATION_SECONDS,
+                                   CLIP_START_OFFSET_SECONDS)
 from agent.services.decision_engine import DecisionEngine
 
 logger = logging.getLogger(__name__)

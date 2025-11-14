@@ -1,17 +1,19 @@
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.date import DateTrigger
-from datetime import datetime, timedelta
-from typing import Dict, Any
 import asyncio
 import logging
-from sqlalchemy import select, text, desc
-from services.youtube_service import upload_to_youtube
-from services.instagram_service import upload_to_instagram
-from database import async_session, PostingOptimization
-from ai_engine.learning_manager import LearningManager
 import os
 import tempfile
+from datetime import datetime, timedelta
+from typing import Any, Dict
+
 import requests
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.date import DateTrigger
+from database import PostingOptimization, async_session
+from services.instagram_service import upload_to_instagram
+from services.youtube_service import upload_to_youtube
+from sqlalchemy import desc, select, text
+
+from ai_engine.learning_manager import LearningManager
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +28,7 @@ async def upload_scheduled_post(
     Upload a scheduled post to the specified platform.
     """
     async with async_session() as session:
-        from database import Post, Analytics
+        from database import Analytics, Post
 
         # Get post from database
         post = await session.get(Post, post_id)

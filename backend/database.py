@@ -1,8 +1,9 @@
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
-from sqlalchemy import Column, Integer, String, DateTime, Text, Float, JSON
-from datetime import datetime
 import os
+from datetime import datetime
+
+from sqlalchemy import JSON, Column, DateTime, Float, Integer, String, Text
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL", "postgresql+asyncpg://user:password@localhost/social_media_manager"

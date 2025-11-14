@@ -1,17 +1,17 @@
-import os
-import logging
 import asyncio
-from datetime import datetime
-from typing import Dict, List, Optional, Any
-import json
 import base64
 import io
+import json
+import logging
+import os
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-import torch
 import numpy as np
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import soundfile as sf
+import torch
 from scipy.io import wavfile
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ except ImportError:
     COQUI_AVAILABLE = False
     logger.warning("Coqui TTS not available, using fallback TTS")
 
-from database import async_session, Post
+from database import Post, async_session
 from voice_engine.services.tts_service import TTSService
 
 

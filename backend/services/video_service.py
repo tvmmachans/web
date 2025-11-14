@@ -1,10 +1,11 @@
 import os
-import boto3
-from moviepy.editor import VideoFileClip
-from fastapi import UploadFile, HTTPException
-from typing import Tuple
 import tempfile
 from datetime import datetime, timedelta
+from typing import Tuple
+
+import boto3
+from fastapi import HTTPException, UploadFile
+from moviepy.editor import VideoFileClip
 
 S3_BUCKET = os.getenv("AWS_S3_BUCKET_NAME", "social-media-videos")
 AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY_ID")

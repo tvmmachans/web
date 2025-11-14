@@ -1,14 +1,15 @@
+import asyncio
+import logging
 import os
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+from typing import Any, Dict, Optional
+
+import librosa
+import numpy as np
+import soundfile as sf
 import torch
 from TTS.api import TTS
-from typing import Optional, Dict, Any
-import logging
-from pathlib import Path
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
-import librosa
-import soundfile as sf
-import numpy as np
 
 logger = logging.getLogger(__name__)
 

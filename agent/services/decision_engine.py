@@ -1,22 +1,19 @@
-import os
 import logging
-from typing import Dict, Any, List
-from datetime import datetime, timedelta
+import os
 import random
 import sys
+from datetime import datetime, timedelta
+from typing import Any, Dict, List
 
 # Add backend to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
 
 from openai import OpenAI
-from agent.config.settings import (
-    OPENAI_MODEL,
-    MAX_TOKENS_DECISION,
-    TEMPERATURE_DECISION,
-    DEFAULT_BEST_POSTING_HOURS,
-    CONTENT_CATEGORIES,
-    MALAYALAM_KEYWORDS,
-)
+
+from agent.config.settings import (CONTENT_CATEGORIES,
+                                   DEFAULT_BEST_POSTING_HOURS,
+                                   MALAYALAM_KEYWORDS, MAX_TOKENS_DECISION,
+                                   OPENAI_MODEL, TEMPERATURE_DECISION)
 from agent.utils.database import get_recent_analytics
 
 logger = logging.getLogger(__name__)
