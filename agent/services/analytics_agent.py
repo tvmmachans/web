@@ -6,13 +6,17 @@ import statistics
 import sys
 
 # Add backend to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'backend'))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
 
-from agent.config.settings import MIN_ENGAGEMENT_RATE_THRESHOLD, ANALYTICS_RETENTION_DAYS
+from agent.config.settings import (
+    MIN_ENGAGEMENT_RATE_THRESHOLD,
+    ANALYTICS_RETENTION_DAYS,
+)
 from agent.utils.database import get_recent_analytics, create_analytics_record
 from openai import OpenAI
 
 logger = logging.getLogger(__name__)
+
 
 class AnalyticsAgent:
     """
@@ -23,7 +27,9 @@ class AnalyticsAgent:
     def __init__(self):
         self.openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-    async def analyze_performance(self, post_id: int = None, platform: str = None, days: int = 30) -> Dict[str, Any]:
+    async def analyze_performance(
+        self, post_id: int = None, platform: str = None, days: int = 30
+    ) -> Dict[str, Any]:
         """
         Analyze performance of posts and provide insights.
         """
@@ -48,27 +54,39 @@ class AnalyticsAgent:
             total_comments = sum(a.comments for a in analytics)
             total_shares = sum(a.shares for a in analytics)
 
-            engagement_rates = [a.engagement_rate for a in analytics if a.engagement_rate > 0]
-            avg_engagement = statistics.mean(engagement_rates) if engagement_rates else 0
+            engagement_rates = [
+                a.engagement_rate for a in analytics if a.engagement_rate > 0
+            ]
+            avg_engagement = (
+                statistics.mean(engagement_rates) if engagement_rates else 0
+            )
 
             # Platform breakdown
             platform_stats = {}
             for analytic in analytics:
                 if analytic.platform not in platform_stats:
                     platform_stats[analytic.platform] = {
-                        "posts": 0, "views": 0, "likes": 0, "comments": 0, "engagement": []
+                        "posts": 0,
+                        "views": 0,
+                        "likes": 0,
+                        "comments": 0,
+                        "engagement": [],
                     }
                 platform_stats[analytic.platform]["posts"] += 1
                 platform_stats[analytic.platform]["views"] += analytic.views
                 platform_stats[analytic.platform]["likes"] += analytic.likes
                 platform_stats[analytic.platform]["comments"] += analytic.comments
                 if analytic.engagement_rate > 0:
-                    platform_stats[analytic.platform]["engagement"].append(analytic.engagement_rate)
+                    platform_stats[analytic.platform]["engagement"].append(
+                        analytic.engagement_rate
+                    )
 
             # Calculate averages for platforms
             for platform_data in platform_stats.values():
                 engagement_list = platform_data["engagement"]
-                platform_data["avg_engagement"] = statistics.mean(engagement_list) if engagement_list else 0
+                platform_data["avg_engagement"] = (
+                    statistics.mean(engagement_list) if engagement_list else 0
+                )
                 del platform_data["engagement"]
 
             # Generate AI insights
@@ -83,7 +101,7 @@ class AnalyticsAgent:
                 "average_engagement_rate": avg_engagement,
                 "platform_breakdown": platform_stats,
                 "insights": insights,
-                "analyzed_at": datetime.utcnow().isoformat()
+                "analyzed_at": datetime.utcnow().isoformat(),
             }
 
             logger.info(f"Performance analysis completed for {total_posts} posts")
@@ -100,11 +118,17 @@ class AnalyticsAgent:
         try:
             # Get historical data for training
             async for session in get_recent_analytics():
-                analytics = await get_recent_analytics(session, 90)  # 90 days for training
+                analytics = await get_recent_analytics(
+                    session, 90
+                )  # 90 days for training
                 break
 
             if not analytics:
-                return {"prediction": 0.5, "confidence": 0.1, "reasoning": "No historical data"}
+                return {
+                    "prediction": 0.5,
+                    "confidence": 0.1,
+                    "reasoning": "No historical data",
+                }
 
             # Simple prediction based on content features
             # In a real implementation, this would use ML models
@@ -112,22 +136,30 @@ class AnalyticsAgent:
                 "title_length": len(post_data.get("title", "")),
                 "has_caption": bool(post_data.get("ai_caption")),
                 "platform": post_data.get("platform", "youtube"),
-                "duration": post_data.get("duration", 0)
+                "duration": post_data.get("duration", 0),
             }
 
             # Calculate success score based on historical patterns
-            success_score = await self._calculate_success_score(prediction_data, analytics)
+            success_score = await self._calculate_success_score(
+                prediction_data, analytics
+            )
 
             return {
                 "prediction": success_score,
                 "confidence": 0.7,  # Placeholder
                 "reasoning": f"Based on {len(analytics)} historical posts",
-                "recommendations": await self._generate_recommendations(success_score, post_data)
+                "recommendations": await self._generate_recommendations(
+                    success_score, post_data
+                ),
             }
 
         except Exception as e:
             logger.error(f"Error predicting success: {e}")
-            return {"prediction": 0.5, "confidence": 0.1, "reasoning": "Error in prediction"}
+            return {
+                "prediction": 0.5,
+                "confidence": 0.1,
+                "reasoning": "Error in prediction",
+            }
 
     async def learn_from_performance(self) -> Dict[str, Any]:
         """
@@ -142,7 +174,7 @@ class AnalyticsAgent:
                 "optimal_posting_times": await self._find_optimal_times(analysis),
                 "content_insights": await self._extract_content_insights(analysis),
                 "engagement_drivers": await self._identify_engagement_drivers(analysis),
-                "learned_at": datetime.utcnow().isoformat()
+                "learned_at": datetime.utcnow().isoformat(),
             }
 
             logger.info("Learning completed from performance data")
@@ -152,7 +184,9 @@ class AnalyticsAgent:
             logger.error(f"Error learning from performance: {e}")
             return {"error": str(e)}
 
-    async def _generate_insights(self, analytics: List, platform_stats: Dict) -> List[str]:
+    async def _generate_insights(
+        self, analytics: List, platform_stats: Dict
+    ) -> List[str]:
         """
         Generate AI-powered insights from analytics data.
         """
@@ -183,11 +217,15 @@ class AnalyticsAgent:
                 model="gpt-4",
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=300,
-                temperature=0.7
+                temperature=0.7,
             )
 
             insights_text = response.choices[0].message.content.strip()
-            insights = [line.strip() for line in insights_text.split('\n') if line.strip() and not line.startswith('#')]
+            insights = [
+                line.strip()
+                for line in insights_text.split("\n")
+                if line.strip() and not line.startswith("#")
+            ]
 
             return insights[:5]  # Limit to 5 insights
 
@@ -195,7 +233,9 @@ class AnalyticsAgent:
             logger.error(f"Error generating insights: {e}")
             return ["Unable to generate insights due to error"]
 
-    async def _calculate_success_score(self, prediction_data: Dict, historical_data: List) -> float:
+    async def _calculate_success_score(
+        self, prediction_data: Dict, historical_data: List
+    ) -> float:
         """
         Calculate success prediction score based on historical data.
         """
@@ -207,7 +247,9 @@ class AnalyticsAgent:
             platform = prediction_data.get("platform", "youtube")
             platform_posts = [a for a in historical_data if a.platform == platform]
             if platform_posts:
-                platform_engagement = statistics.mean([a.engagement_rate for a in platform_posts if a.engagement_rate > 0])
+                platform_engagement = statistics.mean(
+                    [a.engagement_rate for a in platform_posts if a.engagement_rate > 0]
+                )
                 if platform_engagement > MIN_ENGAGEMENT_RATE_THRESHOLD:
                     score += 0.2
 
@@ -231,7 +273,9 @@ class AnalyticsAgent:
             logger.error(f"Error calculating success score: {e}")
             return 0.5
 
-    async def _generate_recommendations(self, success_score: float, post_data: Dict) -> List[str]:
+    async def _generate_recommendations(
+        self, success_score: float, post_data: Dict
+    ) -> List[str]:
         """
         Generate recommendations based on prediction score.
         """
@@ -239,23 +283,29 @@ class AnalyticsAgent:
             recommendations = []
 
             if success_score < 0.4:
-                recommendations.extend([
-                    "Consider improving the title to be more engaging",
-                    "Add a compelling caption with relevant hashtags",
-                    "Review content quality and engagement potential"
-                ])
+                recommendations.extend(
+                    [
+                        "Consider improving the title to be more engaging",
+                        "Add a compelling caption with relevant hashtags",
+                        "Review content quality and engagement potential",
+                    ]
+                )
             elif success_score < 0.7:
-                recommendations.extend([
-                    "Title and content look good",
-                    "Consider optimal posting time for better reach",
-                    "Monitor initial engagement and adjust strategy if needed"
-                ])
+                recommendations.extend(
+                    [
+                        "Title and content look good",
+                        "Consider optimal posting time for better reach",
+                        "Monitor initial engagement and adjust strategy if needed",
+                    ]
+                )
             else:
-                recommendations.extend([
-                    "High potential content - great job!",
-                    "Ensure optimal posting time for maximum reach",
-                    "Consider cross-promotion on other platforms"
-                ])
+                recommendations.extend(
+                    [
+                        "High potential content - great job!",
+                        "Ensure optimal posting time for maximum reach",
+                        "Consider cross-promotion on other platforms",
+                    ]
+                )
 
             return recommendations
 
@@ -272,8 +322,9 @@ class AnalyticsAgent:
             if not platform_stats:
                 return "youtube"
 
-            best_platform = max(platform_stats.items(),
-                              key=lambda x: x[1].get("avg_engagement", 0))
+            best_platform = max(
+                platform_stats.items(), key=lambda x: x[1].get("avg_engagement", 0)
+            )
             return best_platform[0]
 
         except Exception as e:

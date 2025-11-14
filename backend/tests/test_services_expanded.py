@@ -7,11 +7,12 @@ from backend.services.instagram_service import upload_to_instagram
 import tempfile
 import os
 
+
 class TestAIService:
     def setup_method(self):
         self.ai_service = AIService()
 
-    @patch('backend.services.ai_service.OpenAI')
+    @patch("backend.services.ai_service.OpenAI")
     def test_generate_content_success(self, mock_openai):
         # Mock OpenAI response
         mock_client = Mock()
@@ -25,7 +26,7 @@ class TestAIService:
         assert result == "Generated content"
         mock_client.chat.completions.create.assert_called_once()
 
-    @patch('backend.services.ai_service.OpenAI')
+    @patch("backend.services.ai_service.OpenAI")
     def test_generate_caption_malayalam(self, mock_openai):
         mock_client = Mock()
         mock_openai.return_value = mock_client
@@ -37,13 +38,15 @@ class TestAIService:
         result = self.ai_service.generate_caption("Test content", "ml")
         assert "മലയാളം" in result
 
-    @patch('backend.services.ai_service.OpenAI')
+    @patch("backend.services.ai_service.OpenAI")
     def test_generate_subtitles(self, mock_openai):
         mock_client = Mock()
         mock_openai.return_value = mock_client
         mock_response = Mock()
         mock_response.choices = [Mock()]
-        mock_response.choices[0].message.content = "00:00:01,000 --> 00:00:05,000\nസബ്ടൈറ്റിൽ ടെക്സ്റ്റ്"
+        mock_response.choices[0].message.content = (
+            "00:00:01,000 --> 00:00:05,000\nസബ്ടൈറ്റിൽ ടെക്സ്റ്റ്"
+        )
         mock_client.audio.transcriptions.create.return_value = mock_response
 
         result = self.ai_service.generate_subtitles("fake_video.mp4", "ml")
@@ -52,17 +55,18 @@ class TestAIService:
 
     def test_generate_content_error_handling(self):
         # Test error handling when OpenAI fails
-        with patch('backend.services.ai_service.OpenAI') as mock_openai:
+        with patch("backend.services.ai_service.OpenAI") as mock_openai:
             mock_openai.side_effect = Exception("API Error")
 
             result = self.ai_service.generate_content("Test prompt")
             assert "Error generating content" in result
 
+
 class TestVideoService:
     def setup_method(self):
         self.video_service = VideoService()
 
-    @patch('backend.services.video_service.boto3.client')
+    @patch("backend.services.video_service.boto3.client")
     def test_upload_video_success(self, mock_boto3):
         mock_s3 = Mock()
         mock_boto3.return_value = mock_s3
@@ -73,7 +77,7 @@ class TestVideoService:
         assert "signed_url" in result
         assert result["signed_url"] == "https://signed-url.com"
 
-    @patch('backend.services.video_service.boto3.client')
+    @patch("backend.services.video_service.boto3.client")
     def test_generate_signed_url(self, mock_boto3):
         mock_s3 = Mock()
         mock_boto3.return_value = mock_s3
@@ -86,9 +90,10 @@ class TestVideoService:
         result = self.video_service.upload_video("nonexistent.mp4", "test-bucket")
         assert "error" in result
 
+
 class TestYouTubeService:
-    @patch('backend.services.youtube_service.googleapiclient.discovery.build')
-    @patch('backend.services.youtube_service.get_authenticated_service')
+    @patch("backend.services.youtube_service.googleapiclient.discovery.build")
+    @patch("backend.services.youtube_service.get_authenticated_service")
     @pytest.mark.asyncio
     async def test_upload_to_youtube_success(self, mock_auth, mock_build):
         mock_youtube = Mock()
@@ -102,7 +107,7 @@ class TestYouTubeService:
         result = await upload_to_youtube("test.mp4", "Test Title", "Test Description")
         assert result == "test_video_id"
 
-    @patch('backend.services.youtube_service.get_authenticated_service')
+    @patch("backend.services.youtube_service.get_authenticated_service")
     @pytest.mark.asyncio
     async def test_upload_to_youtube_error(self, mock_auth):
         mock_auth.side_effect = Exception("Authentication failed")
@@ -110,8 +115,9 @@ class TestYouTubeService:
         result = await upload_to_youtube("test.mp4", "Test Title", "Test Description")
         assert result is None
 
+
 class TestInstagramService:
-    @patch('backend.services.instagram_service.requests.post')
+    @patch("backend.services.instagram_service.requests.post")
     @pytest.mark.asyncio
     async def test_upload_to_instagram_success(self, mock_post):
         # Mock container creation
@@ -133,7 +139,7 @@ class TestInstagramService:
         result = await upload_to_instagram("https://video-url.com", "Test caption")
         assert result["id"] == "media_id"
 
-    @patch('backend.services.instagram_service.requests.post')
+    @patch("backend.services.instagram_service.requests.post")
     @pytest.mark.asyncio
     async def test_upload_to_instagram_container_error(self, mock_post):
         mock_post.return_value.status_code = 400
@@ -141,13 +147,16 @@ class TestInstagramService:
         result = await upload_to_instagram("https://video-url.com", "Test caption")
         assert result is None
 
+
 class TestSchedulerService:
     def setup_method(self):
         from backend.scheduler import scheduler
+
         self.scheduler = scheduler
 
     def test_schedule_upload(self):
         from datetime import datetime
+
         scheduled_time = datetime.utcnow()
 
         job_id = self.scheduler.schedule_upload(
@@ -155,7 +164,7 @@ class TestSchedulerService:
             platform="youtube",
             scheduled_time=scheduled_time,
             title="Test",
-            description="Test desc"
+            description="Test desc",
         )
 
         assert job_id is not None
@@ -168,8 +177,11 @@ class TestSchedulerService:
     def test_cancel_job(self):
         # First schedule a job
         from datetime import datetime
+
         scheduled_time = datetime.utcnow()
-        job_id = self.scheduler.schedule_upload(1, "youtube", scheduled_time, "Test", "Test")
+        job_id = self.scheduler.schedule_upload(
+            1, "youtube", scheduled_time, "Test", "Test"
+        )
 
         # Then cancel it
         result = self.scheduler.cancel_job(job_id)

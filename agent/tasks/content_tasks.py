@@ -8,6 +8,7 @@ from agent.services.content_repurposer import ContentRepurposer
 
 logger = logging.getLogger(__name__)
 
+
 @celery_app.task(bind=True, name="agent.tasks.content_tasks.repurpose_content")
 def repurpose_content(self, post_data: dict, decision: dict):
     """
@@ -21,14 +22,15 @@ def repurpose_content(self, post_data: dict, decision: dict):
         # Create mock post object
         class MockPost:
             def __init__(self, data):
-                self.id = data.get('id')
-                self.title = data.get('title', '')
-                self.video_url = data.get('video_url')
-                self.duration = data.get('duration')
+                self.id = data.get("id")
+                self.title = data.get("title", "")
+                self.video_url = data.get("video_url")
+                self.duration = data.get("duration")
 
         post = MockPost(post_data)
 
         import asyncio
+
         result = asyncio.run(repurposer.repurpose_content(post, decision))
 
         if result:
@@ -42,6 +44,7 @@ def repurpose_content(self, post_data: dict, decision: dict):
         self.retry(countdown=300, max_retries=3)
         return {"status": "error", "message": str(e)}
 
+
 @celery_app.task(bind=True, name="agent.tasks.content_tasks.create_instagram_clip")
 def create_instagram_clip(self, post_data: dict):
     """
@@ -54,14 +57,15 @@ def create_instagram_clip(self, post_data: dict):
 
         class MockPost:
             def __init__(self, data):
-                self.id = data.get('id')
-                self.title = data.get('title', '')
-                self.video_url = data.get('video_url')
-                self.duration = data.get('duration')
+                self.id = data.get("id")
+                self.title = data.get("title", "")
+                self.video_url = data.get("video_url")
+                self.duration = data.get("duration")
 
         post = MockPost(post_data)
 
         import asyncio
+
         result = asyncio.run(repurposer._create_instagram_clip(post))
 
         if result:
@@ -72,6 +76,7 @@ def create_instagram_clip(self, post_data: dict):
     except Exception as e:
         logger.error(f"Error creating Instagram clip: {e}")
         return {"status": "error", "message": str(e)}
+
 
 @celery_app.task(bind=True, name="agent.tasks.content_tasks.optimize_for_platform")
 def optimize_for_platform(self, post_data: dict, platform: str):
@@ -85,15 +90,16 @@ def optimize_for_platform(self, post_data: dict, platform: str):
 
         class MockPost:
             def __init__(self, data):
-                self.id = data.get('id')
-                self.title = data.get('title', '')
-                self.video_url = data.get('video_url')
-                self.duration = data.get('duration')
-                self.ai_caption = post_data.get('ai_caption')
+                self.id = data.get("id")
+                self.title = data.get("title", "")
+                self.video_url = data.get("video_url")
+                self.duration = data.get("duration")
+                self.ai_caption = post_data.get("ai_caption")
 
         post = MockPost(post_data)
 
         import asyncio
+
         if platform == "instagram":
             result = asyncio.run(repurposer._create_instagram_clip(post))
         elif platform == "youtube":

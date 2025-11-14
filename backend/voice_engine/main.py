@@ -40,19 +40,23 @@ app.include_router(generate_router, prefix="/voice/generate", tags=["Voice Gener
 app.include_router(dub_router, prefix="/voice/dub", tags=["Video Dubbing"])
 app.include_router(analyze_router, prefix="/voice/analyze", tags=["Voice Analysis"])
 
+
 @app.on_event("startup")
 async def on_startup():
     # Initialize voice engine components
     pass
+
 
 @app.on_event("shutdown")
 async def on_shutdown():
     # Cleanup voice engine resources
     pass
 
+
 @app.get("/health/live")
 async def health_live():
     return {"status": "alive"}
+
 
 @app.get("/health/ready")
 async def health_ready():

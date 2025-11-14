@@ -4,13 +4,17 @@ from sqlalchemy import Column, Integer, String, DateTime, Text, Float, JSON
 from datetime import datetime
 import os
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://user:password@localhost/social_media_manager")
+DATABASE_URL = os.getenv(
+    "DATABASE_URL", "postgresql+asyncpg://user:password@localhost/social_media_manager"
+)
 
 engine = create_async_engine(DATABASE_URL, echo=True)
 async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
+
 class Base(DeclarativeBase):
     pass
+
 
 class Post(Base):
     __tablename__ = "posts"
@@ -31,6 +35,7 @@ class Post(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+
 class Analytics(Base):
     __tablename__ = "analytics"
 
@@ -43,6 +48,7 @@ class Analytics(Base):
     shares = Column(Integer, default=0)
     engagement_rate = Column(Float, default=0.0)
     recorded_at = Column(DateTime, default=datetime.utcnow)
+
 
 class Trends(Base):
     __tablename__ = "trends"
@@ -59,6 +65,7 @@ class Trends(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+
 class LearningData(Base):
     __tablename__ = "learning_data"
 
@@ -71,6 +78,7 @@ class LearningData(Base):
     learning_insights = Column(JSON)  # Insights extracted for future learning
     created_at = Column(DateTime, default=datetime.utcnow)
 
+
 class ModelMetrics(Base):
     __tablename__ = "model_metrics"
 
@@ -82,6 +90,7 @@ class ModelMetrics(Base):
     feature_importance = Column(JSON)  # Which features mattered most
     training_samples = Column(Integer, default=0)
     is_active = Column(Integer, default=1)
+
 
 class PostingOptimization(Base):
     __tablename__ = "posting_optimization"
@@ -96,6 +105,7 @@ class PostingOptimization(Base):
     last_updated = Column(DateTime, default=datetime.utcnow)
     sample_size = Column(Integer, default=0)
 
+
 class User(Base):
     __tablename__ = "users"
 
@@ -106,9 +116,11 @@ class User(Base):
     is_active = Column(Integer, default=1)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+
 async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
 
 async def get_db() -> AsyncSession:
     async with async_session() as session:

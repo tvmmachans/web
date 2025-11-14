@@ -6,13 +6,16 @@ import json
 
 client = TestClient(app)
 
+
 @pytest.mark.asyncio
 async def test_full_content_creation_flow():
     """Test the complete flow from content generation to scheduling"""
     # Mock external services
-    with patch('backend.services.ai_service.OpenAI') as mock_openai, \
-         patch('backend.services.video_service.boto3') as mock_boto3, \
-         patch('backend.scheduler.scheduler.schedule_upload') as mock_schedule:
+    with (
+        patch("backend.services.ai_service.OpenAI") as mock_openai,
+        patch("backend.services.video_service.boto3") as mock_boto3,
+        patch("backend.scheduler.scheduler.schedule_upload") as mock_schedule,
+    ):
 
         # Mock AI service
         mock_client = AsyncMock()
@@ -32,10 +35,10 @@ async def test_full_content_creation_flow():
         mock_schedule.return_value = "job_123"
 
         # 1. Generate caption
-        generate_response = client.post("/generate/caption", json={
-            "content": "Test video content",
-            "language": "ml"
-        })
+        generate_response = client.post(
+            "/generate/caption",
+            json={"content": "Test video content", "language": "ml"},
+        )
         assert generate_response.status_code == 200
         caption_data = generate_response.json()
         assert "caption" in caption_data
@@ -54,10 +57,11 @@ async def test_full_content_creation_flow():
                 "platform": "youtube",
                 "scheduled_at": "2024-12-01T10:00:00Z",
                 "title": "Test Post",
-                "description": caption_data["caption"]
+                "description": caption_data["caption"],
             }
             schedule_response = client.post("/schedule/post", json=schedule_data)
             assert schedule_response.status_code in [200, 404]
+
 
 def test_rate_limiting():
     """Test rate limiting middleware"""
@@ -73,12 +77,14 @@ def test_rate_limiting():
     # If rate limiting is implemented, some should be 429
     # assert 429 in responses  # Uncomment if rate limiting is active
 
+
 def test_cors_headers():
     """Test CORS headers are properly set"""
     response = client.options("/health")
     assert "access-control-allow-origin" in response.headers
     assert "access-control-allow-methods" in response.headers
     assert "access-control-allow-headers" in response.headers
+
 
 def test_error_handling():
     """Test error handling for various scenarios"""
@@ -94,10 +100,11 @@ def test_error_handling():
     response = client.get("/nonexistent")
     assert response.status_code == 404
 
+
 @pytest.mark.asyncio
 async def test_analytics_flow():
     """Test analytics data flow"""
-    with patch('backend.routes.analytics.get_db') as mock_get_db:
+    with patch("backend.routes.analytics.get_db") as mock_get_db:
         # Mock database session
         mock_session = AsyncMock()
         mock_get_db.return_value = mock_session
@@ -105,8 +112,14 @@ async def test_analytics_flow():
         # Mock analytics query results
         mock_result = AsyncMock()
         mock_result.fetchall.return_value = [
-            AsyncMock(platform="youtube", total_posts=10, total_views=1000,
-                     total_likes=50, total_comments=20, avg_engagement=0.05)
+            AsyncMock(
+                platform="youtube",
+                total_posts=10,
+                total_views=1000,
+                total_likes=50,
+                total_comments=20,
+                avg_engagement=0.05,
+            )
         ]
         mock_session.execute.return_value = mock_result
 
@@ -115,12 +128,17 @@ async def test_analytics_flow():
         data = response.json()
         assert isinstance(data, list)
 
+
 @pytest.mark.asyncio
 async def test_scheduler_integration():
     """Test scheduler integration"""
-    with patch('backend.scheduler.scheduler.get_scheduled_jobs') as mock_get_jobs:
+    with patch("backend.scheduler.scheduler.get_scheduled_jobs") as mock_get_jobs:
         mock_get_jobs.return_value = [
-            {"job_id": "job_1", "platform": "youtube", "scheduled_time": "2024-01-01T10:00:00Z"}
+            {
+                "job_id": "job_1",
+                "platform": "youtube",
+                "scheduled_time": "2024-01-01T10:00:00Z",
+            }
         ]
 
         response = client.get("/schedule/jobs")
@@ -128,6 +146,7 @@ async def test_scheduler_integration():
         data = response.json()
         assert "jobs" in data
         assert len(data["jobs"]) == 1
+
 
 def test_health_check_detailed():
     """Test detailed health check"""
@@ -137,6 +156,7 @@ def test_health_check_detailed():
     assert "status" in data
     assert data["status"] == "healthy"
 
+
 def test_metrics_format():
     """Test that metrics endpoint returns proper Prometheus format"""
     response = client.get("/metrics")
@@ -144,8 +164,11 @@ def test_metrics_format():
     content = response.text
 
     # Should contain Prometheus metric format
-    lines = content.split('\n')
-    assert any(line.startswith('# HELP') for line in lines) or any(line.startswith('# TYPE') for line in lines)
+    lines = content.split("\n")
+    assert any(line.startswith("# HELP") for line in lines) or any(
+        line.startswith("# TYPE") for line in lines
+    )
+
 
 @pytest.mark.asyncio
 async def test_cross_service_communication():
@@ -153,8 +176,10 @@ async def test_cross_service_communication():
     # This would test how different parts of the system interact
     # For example, how analytics service gets data from database
 
-    with patch('backend.routes.analytics.get_db') as mock_get_db, \
-         patch('backend.services.ai_service.OpenAI') as mock_openai:
+    with (
+        patch("backend.routes.analytics.get_db") as mock_get_db,
+        patch("backend.services.ai_service.OpenAI") as mock_openai,
+    ):
 
         # Mock database
         mock_session = AsyncMock()
@@ -175,23 +200,20 @@ async def test_cross_service_communication():
         assert "best_posting_times" in data
         assert "top_topics" in data
 
+
 def test_request_validation():
     """Test request validation for various endpoints"""
     # Test invalid platform
     data = {
         "post_id": 1,
         "platform": "invalid_platform",
-        "scheduled_at": "2024-12-01T10:00:00Z"
+        "scheduled_at": "2024-12-01T10:00:00Z",
     }
     response = client.post("/schedule/post", json=data)
     assert response.status_code in [422, 401]
 
     # Test invalid date format
-    data = {
-        "post_id": 1,
-        "platform": "youtube",
-        "scheduled_at": "invalid-date"
-    }
+    data = {"post_id": 1, "platform": "youtube", "scheduled_at": "invalid-date"}
     response = client.post("/schedule/post", json=data)
     assert response.status_code in [422, 401]
 

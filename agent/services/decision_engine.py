@@ -6,16 +6,21 @@ import random
 import sys
 
 # Add backend to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'backend'))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
 
 from openai import OpenAI
 from agent.config.settings import (
-    OPENAI_MODEL, MAX_TOKENS_DECISION, TEMPERATURE_DECISION,
-    DEFAULT_BEST_POSTING_HOURS, CONTENT_CATEGORIES, MALAYALAM_KEYWORDS
+    OPENAI_MODEL,
+    MAX_TOKENS_DECISION,
+    TEMPERATURE_DECISION,
+    DEFAULT_BEST_POSTING_HOURS,
+    CONTENT_CATEGORIES,
+    MALAYALAM_KEYWORDS,
 )
 from agent.utils.database import get_recent_analytics
 
 logger = logging.getLogger(__name__)
+
 
 class DecisionEngine:
     """
@@ -40,7 +45,9 @@ class DecisionEngine:
             analytics_data = await self._get_analytics_context()
 
             # Use AI to make platform decision
-            platform_decision = await self._decide_platform(post, content_analysis, analytics_data)
+            platform_decision = await self._decide_platform(
+                post, content_analysis, analytics_data
+            )
 
             # Determine if repurposing is needed
             needs_repurposing = self._check_repurposing_need(post, platform_decision)
@@ -56,7 +63,7 @@ class DecisionEngine:
                 "content_category": content_analysis["category"],
                 "is_malayalam": content_analysis["is_malayalam"],
                 "tags": tags,
-                "suggested_improvements": platform_decision.get("improvements", [])
+                "suggested_improvements": platform_decision.get("improvements", []),
             }
 
             logger.info(f"Decision made for post {post.id}: {decision}")
@@ -73,7 +80,7 @@ class DecisionEngine:
                 "content_category": "general",
                 "is_malayalam": False,
                 "tags": [],
-                "suggested_improvements": []
+                "suggested_improvements": [],
             }
 
     async def suggest_timing(self, post, decision: Dict[str, Any]) -> datetime:
@@ -101,14 +108,16 @@ class DecisionEngine:
                 model=OPENAI_MODEL,
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=10,
-                temperature=TEMPERATURE_DECISION
+                temperature=TEMPERATURE_DECISION,
             )
 
             suggested_hour = int(response.choices[0].message.content.strip())
 
             # Create datetime for next occurrence of that hour
             now = datetime.utcnow()
-            suggested_time = now.replace(hour=suggested_hour, minute=0, second=0, microsecond=0)
+            suggested_time = now.replace(
+                hour=suggested_hour, minute=0, second=0, microsecond=0
+            )
 
             # If the time has passed today, schedule for tomorrow
             if suggested_time <= now:
@@ -122,7 +131,9 @@ class DecisionEngine:
             # Fallback to random best hour
             fallback_hour = random.choice(DEFAULT_BEST_POSTING_HOURS)
             now = datetime.utcnow()
-            fallback_time = now.replace(hour=fallback_hour, minute=0, second=0, microsecond=0)
+            fallback_time = now.replace(
+                hour=fallback_hour, minute=0, second=0, microsecond=0
+            )
             if fallback_time <= now:
                 fallback_time += timedelta(days=1)
             return fallback_time
@@ -154,7 +165,7 @@ class DecisionEngine:
                 model=OPENAI_MODEL,
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=MAX_TOKENS_DECISION,
-                temperature=TEMPERATURE_DECISION
+                temperature=TEMPERATURE_DECISION,
             )
 
             optimized_caption = response.choices[0].message.content.strip()
@@ -172,7 +183,9 @@ class DecisionEngine:
         text_content = f"{post.title} {post.description or ''} {post.ai_caption or ''}"
 
         # Check for Malayalam keywords
-        is_malayalam = any(keyword in text_content.lower() for keyword in self.malayalam_keywords)
+        is_malayalam = any(
+            keyword in text_content.lower() for keyword in self.malayalam_keywords
+        )
 
         # Determine category using AI
         try:
@@ -188,7 +201,7 @@ class DecisionEngine:
                 model=OPENAI_MODEL,
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=20,
-                temperature=0.3
+                temperature=0.3,
             )
 
             category = response.choices[0].message.content.strip().lower()
@@ -204,10 +217,12 @@ class DecisionEngine:
         return {
             "category": category,
             "is_malayalam": is_malayalam,
-            "text_content": text_content
+            "text_content": text_content,
         }
 
-    async def _decide_platform(self, post, content_analysis: Dict, analytics_data: str) -> Dict[str, Any]:
+    async def _decide_platform(
+        self, post, content_analysis: Dict, analytics_data: str
+    ) -> Dict[str, Any]:
         """
         Use AI to decide between YouTube and Instagram based on content and analytics.
         """
@@ -234,11 +249,12 @@ class DecisionEngine:
                 model=OPENAI_MODEL,
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=MAX_TOKENS_DECISION,
-                temperature=TEMPERATURE_DECISION
+                temperature=TEMPERATURE_DECISION,
             )
 
             # Parse JSON response
             import json
+
             decision_text = response.choices[0].message.content.strip()
             decision = json.loads(decision_text)
 
@@ -250,7 +266,7 @@ class DecisionEngine:
                 "platform": "youtube",
                 "confidence": 0.6,
                 "reasoning": "Default decision due to error",
-                "improvements": []
+                "improvements": [],
             }
 
     async def _generate_tags(self, post, content_analysis: Dict) -> List[str]:
@@ -272,11 +288,11 @@ class DecisionEngine:
                 model=OPENAI_MODEL,
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=100,
-                temperature=TEMPERATURE_DECISION
+                temperature=TEMPERATURE_DECISION,
             )
 
             tags_text = response.choices[0].message.content.strip()
-            tags = [tag.strip() for tag in tags_text.split(',') if tag.strip()]
+            tags = [tag.strip() for tag in tags_text.split(",") if tag.strip()]
 
             return tags[:8]  # Limit to 8 tags
 
@@ -291,7 +307,9 @@ class DecisionEngine:
         platform = platform_decision.get("platform", "youtube")
 
         # Instagram typically needs shorter content
-        if platform == "instagram" and post.duration and post.duration > 90:  # Longer than 90 seconds
+        if (
+            platform == "instagram" and post.duration and post.duration > 90
+        ):  # Longer than 90 seconds
             return True
 
         return False
@@ -310,7 +328,11 @@ class DecisionEngine:
 
             # Summarize analytics
             total_posts = len(analytics)
-            avg_engagement = sum(a.engagement_rate for a in analytics) / total_posts if total_posts > 0 else 0
+            avg_engagement = (
+                sum(a.engagement_rate for a in analytics) / total_posts
+                if total_posts > 0
+                else 0
+            )
 
             platform_summary = {}
             for a in analytics:

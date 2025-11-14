@@ -13,6 +13,7 @@ from agent.orchestrator_integration import OrchestratorEventIntegration
 
 logger = logging.getLogger(__name__)
 
+
 class AgentOrchestrator:
     """
     Main orchestrator that coordinates all agent services.
@@ -31,7 +32,7 @@ class AgentOrchestrator:
             self.monitoring_service,
             self.comment_automation,
             self.report_generator,
-            self.orchestrator_integration
+            self.orchestrator_integration,
         ]
 
         self.running = False
@@ -140,17 +141,27 @@ class AgentOrchestrator:
             services_status = {}
 
             # Get status from each service
-            services_status["monitoring"] = await self.monitoring_service.get_monitoring_status()
-            services_status["comment_automation"] = await self.comment_automation.get_comment_stats()
-            services_status["report_generator"] = await self.report_generator.get_report_status()
+            services_status["monitoring"] = (
+                await self.monitoring_service.get_monitoring_status()
+            )
+            services_status["comment_automation"] = (
+                await self.comment_automation.get_comment_stats()
+            )
+            services_status["report_generator"] = (
+                await self.report_generator.get_report_status()
+            )
 
             status = {
                 "agent_name": AGENT_NAME,
                 "version": AGENT_VERSION,
                 "running": self.running,
                 "start_time": self.start_time.isoformat() if self.start_time else None,
-                "uptime_seconds": (datetime.utcnow() - self.start_time).total_seconds() if self.start_time else 0,
-                "services": services_status
+                "uptime_seconds": (
+                    (datetime.utcnow() - self.start_time).total_seconds()
+                    if self.start_time
+                    else 0
+                ),
+                "services": services_status,
             }
 
             return status

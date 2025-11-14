@@ -6,16 +6,20 @@ import asyncio
 import sys
 
 # Add backend to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'backend'))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
 
 from openai import OpenAI
 from agent.config.settings import (
-    COMMENT_CHECK_INTERVAL_MINUTES, MAX_COMMENTS_PER_POST,
-    MALAYALAM_LANGUAGE_CODE, YOUTUBE_API_KEY, INSTAGRAM_ACCESS_TOKEN
+    COMMENT_CHECK_INTERVAL_MINUTES,
+    MAX_COMMENTS_PER_POST,
+    MALAYALAM_LANGUAGE_CODE,
+    YOUTUBE_API_KEY,
+    INSTAGRAM_ACCESS_TOKEN,
 )
 from agent.utils.database import get_db_session
 
 logger = logging.getLogger(__name__)
+
 
 class CommentAutomation:
     """
@@ -32,7 +36,9 @@ class CommentAutomation:
         """
         Start continuous comment monitoring loop.
         """
-        logger.info(f"Starting comment monitoring every {COMMENT_CHECK_INTERVAL_MINUTES} minutes")
+        logger.info(
+            f"Starting comment monitoring every {COMMENT_CHECK_INTERVAL_MINUTES} minutes"
+        )
 
         while True:
             try:
@@ -76,10 +82,7 @@ class CommentAutomation:
             cutoff_date = datetime.utcnow() - timedelta(days=7)
 
             stmt = select(Post).where(
-                and_(
-                    Post.status == "posted",
-                    Post.posted_at >= cutoff_date
-                )
+                and_(Post.status == "posted", Post.posted_at >= cutoff_date)
             )
 
             result = await session.execute(stmt)
@@ -118,7 +121,7 @@ class CommentAutomation:
             # For now, return mock data
             # In production, implement actual API calls
 
-            video_id = post.video_url.split('/')[-1] if post.video_url else None
+            video_id = post.video_url.split("/")[-1] if post.video_url else None
             if not video_id:
                 return []
 
@@ -130,7 +133,7 @@ class CommentAutomation:
                     "author": "User1",
                     "published_at": datetime.utcnow().isoformat(),
                     "platform": "youtube",
-                    "language": "malayalam"
+                    "language": "malayalam",
                 },
                 {
                     "id": "mock2",
@@ -138,8 +141,8 @@ class CommentAutomation:
                     "author": "User2",
                     "published_at": datetime.utcnow().isoformat(),
                     "platform": "youtube",
-                    "language": "english"
-                }
+                    "language": "english",
+                },
             ]
 
             return mock_comments
@@ -161,7 +164,7 @@ class CommentAutomation:
                     "author": "User3",
                     "published_at": datetime.utcnow().isoformat(),
                     "platform": "instagram",
-                    "language": "malayalam"
+                    "language": "malayalam",
                 }
             ]
 
@@ -189,11 +192,15 @@ class CommentAutomation:
 
                     if response:
                         # Post the response
-                        success = await self._post_comment_response(post, comment, response)
+                        success = await self._post_comment_response(
+                            post, comment, response
+                        )
 
                         if success:
                             # Record the response
-                            await self._record_response(session, post.id, comment["id"], response)
+                            await self._record_response(
+                                session, post.id, comment["id"], response
+                            )
                             responded_count += 1
 
                 except Exception as e:
@@ -204,7 +211,9 @@ class CommentAutomation:
         except Exception as e:
             logger.error(f"Error processing comments for post {post.id}: {e}")
 
-    async def _generate_comment_response(self, post, comment: Dict[str, Any]) -> Optional[str]:
+    async def _generate_comment_response(
+        self, post, comment: Dict[str, Any]
+    ) -> Optional[str]:
         """
         Generate an AI-powered response to a comment.
         """
@@ -240,7 +249,7 @@ class CommentAutomation:
                 model="gpt-4",
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=50,
-                temperature=0.8
+                temperature=0.8,
             )
 
             ai_response = response.choices[0].message.content.strip()
@@ -270,19 +279,34 @@ class CommentAutomation:
                 return False
 
             # Respond to positive comments, questions, or engagement
-            positive_indicators = ["നല്ല", "good", "nice", "awesome", "thanks", "thank", "?", "എങ്ങനെ", "how"]
-            if any(indicator in comment_text.lower() for indicator in positive_indicators):
+            positive_indicators = [
+                "നല്ല",
+                "good",
+                "nice",
+                "awesome",
+                "thanks",
+                "thank",
+                "?",
+                "എങ്ങനെ",
+                "how",
+            ]
+            if any(
+                indicator in comment_text.lower() for indicator in positive_indicators
+            ):
                 return True
 
             # Randomly respond to some neutral comments (20% chance)
             import random
+
             return random.random() < 0.2
 
         except Exception as e:
             logger.error(f"Error checking if should respond: {e}")
             return False
 
-    async def _post_comment_response(self, post, comment: Dict[str, Any], response: str) -> bool:
+    async def _post_comment_response(
+        self, post, comment: Dict[str, Any], response: str
+    ) -> bool:
         """
         Post the response to the appropriate platform.
         """
@@ -342,7 +366,9 @@ class CommentAutomation:
             logger.error(f"Error checking response history: {e}")
             return False
 
-    async def _record_response(self, session, post_id: int, comment_id: str, response: str):
+    async def _record_response(
+        self, session, post_id: int, comment_id: str, response: str
+    ):
         """
         Record the response in database for tracking.
         """
@@ -363,5 +389,5 @@ class CommentAutomation:
             "check_interval_minutes": COMMENT_CHECK_INTERVAL_MINUTES,
             "max_comments_per_post": MAX_COMMENTS_PER_POST,
             "supported_languages": ["malayalam", "english"],
-            "supported_platforms": ["youtube", "instagram"]
+            "supported_platforms": ["youtube", "instagram"],
         }

@@ -18,7 +18,10 @@ logger = logging.getLogger(__name__)
 scheduler = AsyncIOScheduler()
 learning_manager = LearningManager()
 
-async def upload_scheduled_post(post_id: int, platform: str, title: str, description: str, tags: list = None):
+
+async def upload_scheduled_post(
+    post_id: int, platform: str, title: str, description: str, tags: list = None
+):
     """
     Upload a scheduled post to the specified platform.
     """
@@ -38,7 +41,9 @@ async def upload_scheduled_post(post_id: int, platform: str, title: str, descrip
                 if response.status_code != 200:
                     raise Exception("Failed to download video")
 
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_file:
+                with tempfile.NamedTemporaryFile(
+                    delete=False, suffix=".mp4"
+                ) as temp_file:
                     temp_file.write(response.content)
                     temp_path = temp_file.name
 
@@ -48,7 +53,7 @@ async def upload_scheduled_post(post_id: int, platform: str, title: str, descrip
                         video_path=temp_path,
                         title=title,
                         description=description,
-                        tags=tags
+                        tags=tags,
                     )
 
                     # Update post
@@ -61,7 +66,7 @@ async def upload_scheduled_post(post_id: int, platform: str, title: str, descrip
                         platform="youtube",
                         views=0,
                         likes=0,
-                        comments=0
+                        comments=0,
                     )
                     session.add(analytics)
                     await session.commit()
@@ -74,8 +79,7 @@ async def upload_scheduled_post(post_id: int, platform: str, title: str, descrip
             elif platform == "instagram":
                 # Upload to Instagram
                 result = await upload_to_instagram(
-                    video_path=post.video_url,
-                    caption=description
+                    video_path=post.video_url, caption=description
                 )
 
                 # Update post
@@ -84,11 +88,7 @@ async def upload_scheduled_post(post_id: int, platform: str, title: str, descrip
 
                 # Create analytics
                 analytics = Analytics(
-                    post_id=post.id,
-                    platform="instagram",
-                    views=0,
-                    likes=0,
-                    comments=0
+                    post_id=post.id, platform="instagram", views=0, likes=0, comments=0
                 )
                 session.add(analytics)
                 await session.commit()
@@ -100,7 +100,15 @@ async def upload_scheduled_post(post_id: int, platform: str, title: str, descrip
             post.status = "failed"
             await session.commit()
 
-def schedule_upload(post_id: int, platform: str, scheduled_time: datetime, title: str, description: str, tags: list = None):
+
+def schedule_upload(
+    post_id: int,
+    platform: str,
+    scheduled_time: datetime,
+    title: str,
+    description: str,
+    tags: list = None,
+):
     """
     Schedule a post upload.
     """
@@ -110,9 +118,10 @@ def schedule_upload(post_id: int, platform: str, scheduled_time: datetime, title
         trigger=DateTrigger(run_date=scheduled_time),
         args=[post_id, platform, title, description, tags],
         id=job_id,
-        replace_existing=True
+        replace_existing=True,
     )
     return job_id
+
 
 def get_scheduled_jobs():
     """
@@ -120,12 +129,17 @@ def get_scheduled_jobs():
     """
     jobs = []
     for job in scheduler.get_jobs():
-        jobs.append({
-            "id": job.id,
-            "next_run_time": job.next_run_time.isoformat() if job.next_run_time else None,
-            "args": job.args
-        })
+        jobs.append(
+            {
+                "id": job.id,
+                "next_run_time": (
+                    job.next_run_time.isoformat() if job.next_run_time else None
+                ),
+                "args": job.args,
+            }
+        )
     return jobs
+
 
 def cancel_job(job_id: str):
     """
@@ -137,12 +151,14 @@ def cancel_job(job_id: str):
     except Exception:
         return False
 
+
 def start_scheduler():
     """
     Start the scheduler.
     """
     if not scheduler.running:
         scheduler.start()
+
 
 def shutdown_scheduler():
     """
@@ -151,6 +167,7 @@ def shutdown_scheduler():
     if scheduler.running:
         scheduler.shutdown()
 
+
 async def get_optimal_posting_time(platform: str, language: str = "ml") -> datetime:
     """
     Get optimal posting time based on learning data.
@@ -158,18 +175,25 @@ async def get_optimal_posting_time(platform: str, language: str = "ml") -> datet
     try:
         async with async_session() as session:
             # Get optimization data
-            query = select(PostingOptimization).where(
-                PostingOptimization.platform == platform,
-                PostingOptimization.language == language
-            ).order_by(desc(PostingOptimization.engagement_score)).limit(1)
-            
+            query = (
+                select(PostingOptimization)
+                .where(
+                    PostingOptimization.platform == platform,
+                    PostingOptimization.language == language,
+                )
+                .order_by(desc(PostingOptimization.engagement_score))
+                .limit(1)
+            )
+
             result = await session.execute(query)
             optimization = result.scalar_one_or_none()
 
             if optimization:
                 # Calculate next optimal time
                 now = datetime.utcnow()
-                optimal_time = now.replace(hour=optimization.optimal_hour, minute=0, second=0, microsecond=0)
+                optimal_time = now.replace(
+                    hour=optimization.optimal_hour, minute=0, second=0, microsecond=0
+                )
 
                 # If optimal time has passed today, schedule for tomorrow
                 if optimal_time <= now:
@@ -192,6 +216,7 @@ async def get_optimal_posting_time(platform: str, language: str = "ml") -> datet
         logger.error(f"Failed to get optimal posting time: {e}")
         return get_default_optimal_time(platform)
 
+
 def get_default_optimal_time(platform: str) -> datetime:
     """
     Get default optimal posting times for Malayalam content.
@@ -211,6 +236,7 @@ def get_default_optimal_time(platform: str) -> datetime:
         optimal_time += timedelta(days=1)
 
     return optimal_time
+
 
 async def optimize_scheduled_posts():
     """
@@ -239,7 +265,9 @@ async def optimize_scheduled_posts():
 
                 # If difference is more than 2 hours, reschedule
                 if time_diff > 7200:  # 2 hours in seconds
-                    logger.info(f"Rescheduling post {post_id} from {current_time} to {optimal_time}")
+                    logger.info(
+                        f"Rescheduling post {post_id} from {current_time} to {optimal_time}"
+                    )
 
                     # Cancel old job
                     cancel_job(job_id)
@@ -251,6 +279,7 @@ async def optimize_scheduled_posts():
 
     except Exception as e:
         logger.error(f"Scheduled posts optimization failed: {e}")
+
 
 async def dynamic_scheduling_adjustment():
     """
@@ -273,6 +302,7 @@ async def dynamic_scheduling_adjustment():
     except Exception as e:
         logger.error(f"Dynamic scheduling adjustment failed: {e}")
 
+
 async def get_recent_performance_data() -> Dict[str, Any]:
     """
     Get recent performance data for scheduling adjustments.
@@ -283,7 +313,8 @@ async def get_recent_performance_data() -> Dict[str, Any]:
             seven_days_ago = datetime.utcnow() - timedelta(days=7)
 
             result = await session.execute(
-                text("""
+                text(
+                    """
                     SELECT platform, AVG(engagement_rate) as avg_engagement,
                            COUNT(*) as post_count,
                            EXTRACT(hour from posted_at) as hour
@@ -292,8 +323,9 @@ async def get_recent_performance_data() -> Dict[str, Any]:
                     WHERE p.posted_at >= :start_date
                     GROUP BY platform, EXTRACT(hour from posted_at)
                     ORDER BY avg_engagement DESC
-                """),
-                {"start_date": seven_days_ago}
+                """
+                ),
+                {"start_date": seven_days_ago},
             )
 
             performance_data = result.fetchall()
@@ -304,17 +336,20 @@ async def get_recent_performance_data() -> Dict[str, Any]:
                 platform = row.platform
                 if platform not in platform_performance:
                     platform_performance[platform] = []
-                platform_performance[platform].append({
-                    "hour": int(row.hour),
-                    "avg_engagement": float(row.avg_engagement),
-                    "post_count": row.post_count
-                })
+                platform_performance[platform].append(
+                    {
+                        "hour": int(row.hour),
+                        "avg_engagement": float(row.avg_engagement),
+                        "post_count": row.post_count,
+                    }
+                )
 
             return platform_performance
 
     except Exception as e:
         logger.error(f"Failed to get recent performance data: {e}")
         return {}
+
 
 async def adjust_future_scheduling(performance_data: Dict[str, Any]):
     """
@@ -331,7 +366,7 @@ async def adjust_future_scheduling(performance_data: Dict[str, Any]):
                     # Update or create optimization record
                     query = select(PostingOptimization).where(
                         PostingOptimization.platform == platform,
-                        PostingOptimization.language == "ml"
+                        PostingOptimization.language == "ml",
                     )
                     existing = await session.execute(query)
                     optimization = existing.scalar_one_or_none()
@@ -342,12 +377,14 @@ async def adjust_future_scheduling(performance_data: Dict[str, Any]):
                             optimal_hour=best_hour,
                             optimal_day=datetime.utcnow().weekday(),
                             engagement_score=max(d["avg_engagement"] for d in data),
-                            confidence=0.8  # Default confidence
+                            confidence=0.8,  # Default confidence
                         )
                         session.add(optimization)
                     else:
                         optimization.optimal_hour = best_hour
-                        optimization.engagement_score = max(d["avg_engagement"] for d in data)
+                        optimization.engagement_score = max(
+                            d["avg_engagement"] for d in data
+                        )
                         optimization.last_updated = datetime.utcnow()
 
                     await session.commit()
@@ -356,6 +393,7 @@ async def adjust_future_scheduling(performance_data: Dict[str, Any]):
 
     except Exception as e:
         logger.error(f"Failed to adjust future scheduling: {e}")
+
 
 def schedule_malayalam_specific_optimization():
     """
@@ -367,7 +405,7 @@ def schedule_malayalam_specific_optimization():
         trigger="cron",
         hour=6,  # 6 AM daily
         id="daily_optimization_review",
-        replace_existing=True
+        replace_existing=True,
     )
 
     # Schedule hourly dynamic adjustments
@@ -376,7 +414,7 @@ def schedule_malayalam_specific_optimization():
         trigger="cron",
         minute=0,  # Every hour
         id="hourly_dynamic_adjustment",
-        replace_existing=True
+        replace_existing=True,
     )
 
     logger.info("Malayalam-specific optimization tasks scheduled")

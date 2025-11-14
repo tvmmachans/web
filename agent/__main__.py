@@ -15,18 +15,17 @@ sys.path.insert(0, os.path.dirname(__file__))
 from agent.core.orchestrator import AgentOrchestrator
 from agent.config.settings import LOG_LEVEL, LOG_FILE
 
+
 def setup_logging():
     """
     Setup logging configuration.
     """
     logging.basicConfig(
         level=getattr(logging, LOG_LEVEL.upper()),
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.FileHandler(LOG_FILE),
-            logging.StreamHandler(sys.stdout)
-        ]
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[logging.FileHandler(LOG_FILE), logging.StreamHandler(sys.stdout)],
     )
+
 
 async def main():
     """
@@ -51,7 +50,7 @@ async def main():
                 print("Agent Status:")
                 print(f"Running: {status['running']}")
                 print(f"Uptime: {status.get('uptime_seconds', 0):.0f} seconds")
-                for service_name, service_status in status.get('services', {}).items():
+                for service_name, service_status in status.get("services", {}).items():
                     print(f"{service_name}: {service_status}")
 
             elif command == "report":
@@ -84,6 +83,7 @@ async def main():
     except Exception as e:
         logger.error(f"Fatal error: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

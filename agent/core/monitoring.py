@@ -14,14 +14,17 @@ import psutil
 import time
 
 # Add backend to path for imports
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'backend'))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
 
 from agent.config.settings import (
-    MONITORING_INTERVAL_HOURS, MAX_POSTS_PER_CHECK,
-    BACKEND_API_URL, BACKEND_API_KEY
+    MONITORING_INTERVAL_HOURS,
+    MAX_POSTS_PER_CHECK,
+    BACKEND_API_URL,
+    BACKEND_API_KEY,
 )
 
 logger = logging.getLogger(__name__)
+
 
 class MonitoringService:
     """
@@ -29,18 +32,20 @@ class MonitoringService:
     """
 
     def __init__(self):
-        self.backend_url = BACKEND_API_URL.rstrip('/')
+        self.backend_url = BACKEND_API_URL.rstrip("/")
         self.api_key = BACKEND_API_KEY
         self.client = httpx.AsyncClient(
             timeout=30.0,
-            headers={"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
+            headers={"Authorization": f"Bearer {self.api_key}"} if self.api_key else {},
         )
 
     async def start_monitoring_loop(self):
         """
         Start the continuous monitoring loop.
         """
-        logger.info(f"Starting monitoring loop - checking every {MONITORING_INTERVAL_HOURS} hours")
+        logger.info(
+            f"Starting monitoring loop - checking every {MONITORING_INTERVAL_HOURS} hours"
+        )
 
         while True:
             try:
@@ -90,7 +95,9 @@ class MonitoringService:
                 data = response.json()
                 return data.get("posts", [])
             else:
-                logger.error(f"Failed to get pending posts: {response.status_code} - {response.text}")
+                logger.error(
+                    f"Failed to get pending posts: {response.status_code} - {response.text}"
+                )
                 return []
 
         except Exception as e:
@@ -127,11 +134,16 @@ class MonitoringService:
         """
         try:
             url = f"{self.backend_url}/agent/posts/{post_id}/status"
-            data = {"status": "processed", "processed_at": datetime.utcnow().isoformat()}
+            data = {
+                "status": "processed",
+                "processed_at": datetime.utcnow().isoformat(),
+            }
             response = await self.client.put(url, json=data)
 
             if response.status_code != 200:
-                logger.error(f"Failed to mark post {post_id} as processed: {response.status_code}")
+                logger.error(
+                    f"Failed to mark post {post_id} as processed: {response.status_code}"
+                )
 
         except Exception as e:
             logger.error(f"Error marking post {post_id} as processed: {e}")
@@ -146,7 +158,9 @@ class MonitoringService:
             response = await self.client.put(url, json=data)
 
             if response.status_code != 200:
-                logger.error(f"Failed to mark post {post_id} as failed: {response.status_code}")
+                logger.error(
+                    f"Failed to mark post {post_id} as failed: {response.status_code}"
+                )
 
         except Exception as e:
             logger.error(f"Error marking post {post_id} as failed: {e}")
@@ -161,7 +175,7 @@ class MonitoringService:
             "max_posts_per_check": MAX_POSTS_PER_CHECK,
             "backend_url": self.backend_url,
             "api_connected": await self._test_api_connection(),
-            "system_metrics": self._get_system_metrics()
+            "system_metrics": self._get_system_metrics(),
         }
 
     def _get_system_metrics(self) -> Dict[str, Any]:
@@ -171,8 +185,8 @@ class MonitoringService:
         return {
             "cpu_percent": psutil.cpu_percent(interval=1),
             "memory_percent": psutil.virtual_memory().percent,
-            "disk_usage": psutil.disk_usage('/').percent,
-            "timestamp": datetime.utcnow().isoformat()
+            "disk_usage": psutil.disk_usage("/").percent,
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
     async def _test_api_connection(self) -> bool:

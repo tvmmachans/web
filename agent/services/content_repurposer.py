@@ -6,13 +6,14 @@ from typing import Dict, Any, Optional
 import sys
 
 # Add backend to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'backend'))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
 
 import requests
 from agent.config.settings import CLIP_DURATION_SECONDS, CLIP_START_OFFSET_SECONDS
 from agent.services.decision_engine import DecisionEngine
 
 logger = logging.getLogger(__name__)
+
 
 class ContentRepurposer:
     """
@@ -23,7 +24,9 @@ class ContentRepurposer:
     def __init__(self):
         self.decision_engine = DecisionEngine()
 
-    async def repurpose_content(self, post, decision: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def repurpose_content(
+        self, post, decision: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """
         Repurpose content based on the platform decision.
         """
@@ -53,7 +56,9 @@ class ContentRepurposer:
                 return None
 
             # Create clip
-            clip_path = await self._extract_clip(video_path, CLIP_START_OFFSET_SECONDS, CLIP_DURATION_SECONDS)
+            clip_path = await self._extract_clip(
+                video_path, CLIP_START_OFFSET_SECONDS, CLIP_DURATION_SECONDS
+            )
 
             # Generate new thumbnail for clip
             thumbnail_path = await self._generate_thumbnail(clip_path)
@@ -68,7 +73,7 @@ class ContentRepurposer:
                 "thumbnail_url": thumbnail_path,
                 "caption": caption,
                 "platform": "instagram",
-                "duration": CLIP_DURATION_SECONDS
+                "duration": CLIP_DURATION_SECONDS,
             }
 
             logger.info(f"Created Instagram clip for post {post.id}")
@@ -90,17 +95,16 @@ class ContentRepurposer:
             if post.duration and post.duration <= 60:
                 # Already short, just optimize caption
                 caption = await self._generate_youtube_caption(post)
-                return {
-                    "caption": caption,
-                    "platform": "youtube"
-                }
+                return {"caption": caption, "platform": "youtube"}
 
             # Create a YouTube Short
             video_path = await self._download_video(post.video_url)
             if not video_path:
                 return None
 
-            short_path = await self._extract_clip(video_path, 0, 60)  # 60 seconds for Shorts
+            short_path = await self._extract_clip(
+                video_path, 0, 60
+            )  # 60 seconds for Shorts
             thumbnail_path = await self._generate_thumbnail(short_path)
             caption = await self._generate_youtube_caption(post)
 
@@ -108,7 +112,7 @@ class ContentRepurposer:
                 "short_video_url": short_path,
                 "thumbnail_url": thumbnail_path,
                 "caption": caption,
-                "platform": "youtube"
+                "platform": "youtube",
             }
 
         except Exception as e:
@@ -134,7 +138,9 @@ class ContentRepurposer:
             logger.error(f"Error downloading video: {e}")
             return None
 
-    async def _extract_clip(self, video_path: str, start_time: int, duration: int) -> Optional[str]:
+    async def _extract_clip(
+        self, video_path: str, start_time: int, duration: int
+    ) -> Optional[str]:
         """
         Extract a clip from video using ffmpeg.
         """
@@ -143,13 +149,21 @@ class ContentRepurposer:
 
             # ffmpeg command to extract clip
             cmd = [
-                "ffmpeg", "-i", video_path,
-                "-ss", str(start_time),
-                "-t", str(duration),
-                "-c:v", "libx264",
-                "-c:a", "aac",
-                "-strict", "experimental",
-                "-y", output_path
+                "ffmpeg",
+                "-i",
+                video_path,
+                "-ss",
+                str(start_time),
+                "-t",
+                str(duration),
+                "-c:v",
+                "libx264",
+                "-c:a",
+                "aac",
+                "-strict",
+                "experimental",
+                "-y",
+                output_path,
             ]
 
             result = subprocess.run(cmd, capture_output=True, text=True)
@@ -173,11 +187,17 @@ class ContentRepurposer:
 
             # ffmpeg command to extract thumbnail
             cmd = [
-                "ffmpeg", "-i", video_path,
-                "-ss", "5",  # 5 seconds in
-                "-vframes", "1",
-                "-q:v", "2",
-                "-y", thumbnail_path
+                "ffmpeg",
+                "-i",
+                video_path,
+                "-ss",
+                "5",  # 5 seconds in
+                "-vframes",
+                "1",
+                "-q:v",
+                "2",
+                "-y",
+                thumbnail_path,
             ]
 
             result = subprocess.run(cmd, capture_output=True, text=True)
@@ -197,11 +217,15 @@ class ContentRepurposer:
         Generate Instagram-optimized caption.
         """
         try:
-            base_caption = post.ai_caption or post.description or f"Check out: {post.title}"
+            base_caption = (
+                post.ai_caption or post.description or f"Check out: {post.title}"
+            )
 
             # Use decision engine to optimize for Instagram
             decision = {"platform": "instagram", "content_category": "entertainment"}
-            optimized = await self.decision_engine.optimize_caption(base_caption, decision)
+            optimized = await self.decision_engine.optimize_caption(
+                base_caption, decision
+            )
 
             return optimized
 
@@ -214,11 +238,15 @@ class ContentRepurposer:
         Generate YouTube-optimized caption.
         """
         try:
-            base_caption = post.ai_caption or post.description or f"Check out: {post.title}"
+            base_caption = (
+                post.ai_caption or post.description or f"Check out: {post.title}"
+            )
 
             # Use decision engine to optimize for YouTube
             decision = {"platform": "youtube", "content_category": "entertainment"}
-            optimized = await self.decision_engine.optimize_caption(base_caption, decision)
+            optimized = await self.decision_engine.optimize_caption(
+                base_caption, decision
+            )
 
             return optimized
 
@@ -245,5 +273,5 @@ class ContentRepurposer:
             "service": "content_repurposer",
             "clip_duration": CLIP_DURATION_SECONDS,
             "start_offset": CLIP_START_OFFSET_SECONDS,
-            "supported_platforms": ["instagram", "youtube"]
+            "supported_platforms": ["instagram", "youtube"],
         }

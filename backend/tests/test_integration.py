@@ -4,13 +4,16 @@ from backend.main import app
 
 client = TestClient(app)
 
+
 @pytest.mark.asyncio
 async def test_full_content_creation_flow():
     # Test the complete flow from content generation to scheduling
     # This would require mocking external services
 
     # 1. Generate content
-    generate_response = client.post("/generate", json={"prompt": "Create a video about AI"})
+    generate_response = client.post(
+        "/generate", json={"prompt": "Create a video about AI"}
+    )
     assert generate_response.status_code in [200, 401]  # 401 if auth required
 
     # 2. Upload video (mock)
@@ -20,10 +23,11 @@ async def test_full_content_creation_flow():
     schedule_data = {
         "content": "AI is transforming our world",
         "platform": "youtube",
-        "schedule_time": "2024-12-01T10:00:00Z"
+        "schedule_time": "2024-12-01T10:00:00Z",
     }
     schedule_response = client.post("/schedule", json=schedule_data)
     assert schedule_response.status_code in [200, 401]
+
 
 def test_rate_limiting():
     # Test rate limiting middleware
@@ -33,6 +37,7 @@ def test_rate_limiting():
             assert response.status_code == 200
         else:
             assert response.status_code == 429  # Too Many Requests
+
 
 def test_cors_headers():
     response = client.options("/health")

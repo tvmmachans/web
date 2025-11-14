@@ -9,6 +9,7 @@ from typing import Optional
 
 router = APIRouter()
 
+
 class UploadResponse(BaseModel):
     video_url: str
     thumbnail_url: str
@@ -16,10 +17,10 @@ class UploadResponse(BaseModel):
     ai_caption: Optional[str] = None
     ai_subtitles: Optional[list] = None
 
+
 @router.post("/video", response_model=UploadResponse)
 async def upload_video(
-    file: UploadFile = File(...),
-    db: AsyncSession = Depends(get_db)
+    file: UploadFile = File(...), db: AsyncSession = Depends(get_db)
 ):
     """
     Upload video, process it, generate AI caption and subtitles.
@@ -42,7 +43,7 @@ async def upload_video(
             duration=upload_result["duration"],
             ai_caption=ai_caption,
             ai_subtitles=ai_subtitles,
-            platform="pending"  # Will be set when scheduled
+            platform="pending",  # Will be set when scheduled
         )
         db.add(new_post)
         await db.commit()
@@ -53,7 +54,7 @@ async def upload_video(
             thumbnail_url=upload_result["thumbnail_url"],
             duration=upload_result["duration"],
             ai_caption=ai_caption,
-            ai_subtitles=ai_subtitles
+            ai_subtitles=ai_subtitles,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

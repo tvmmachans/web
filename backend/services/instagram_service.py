@@ -6,6 +6,7 @@ INSTAGRAM_ACCESS_TOKEN = os.getenv("INSTAGRAM_ACCESS_TOKEN")
 INSTAGRAM_ACCOUNT_ID = os.getenv("INSTAGRAM_ACCOUNT_ID")
 GRAPH_API_VERSION = "v18.0"
 
+
 async def upload_to_instagram(video_path: str, caption: str) -> Dict:
     """
     Upload video to Instagram using Graph API.
@@ -17,7 +18,7 @@ async def upload_to_instagram(video_path: str, caption: str) -> Dict:
         "media_type": "VIDEO",
         "video_url": video_path,  # Assuming video is already uploaded to accessible URL
         "caption": caption,
-        "access_token": INSTAGRAM_ACCESS_TOKEN
+        "access_token": INSTAGRAM_ACCESS_TOKEN,
     }
 
     response = requests.post(url, data=payload)
@@ -30,7 +31,7 @@ async def upload_to_instagram(video_path: str, caption: str) -> Dict:
     publish_url = f"https://graph.facebook.com/{GRAPH_API_VERSION}/{INSTAGRAM_ACCOUNT_ID}/media_publish"
     publish_payload = {
         "creation_id": container_id,
-        "access_token": INSTAGRAM_ACCESS_TOKEN
+        "access_token": INSTAGRAM_ACCESS_TOKEN,
     }
 
     publish_response = requests.post(publish_url, data=publish_payload)
@@ -39,6 +40,7 @@ async def upload_to_instagram(video_path: str, caption: str) -> Dict:
 
     return publish_response.json()
 
+
 async def get_instagram_analytics(post_id: str) -> Dict:
     """
     Get analytics for an Instagram post.
@@ -46,7 +48,7 @@ async def get_instagram_analytics(post_id: str) -> Dict:
     url = f"https://graph.facebook.com/{GRAPH_API_VERSION}/{post_id}/insights"
     params = {
         "metric": "impressions,reach,engagement",
-        "access_token": INSTAGRAM_ACCESS_TOKEN
+        "access_token": INSTAGRAM_ACCESS_TOKEN,
     }
 
     response = requests.get(url, params=params)

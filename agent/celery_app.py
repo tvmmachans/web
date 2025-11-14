@@ -5,7 +5,9 @@ Provides background task scheduling and execution.
 
 from celery import Celery
 from agent.config.settings import (
-    CELERY_BROKER_URL, CELERY_RESULT_BACKEND, CELERY_TIMEZONE
+    CELERY_BROKER_URL,
+    CELERY_RESULT_BACKEND,
+    CELERY_TIMEZONE,
 )
 
 # Create Celery app
@@ -19,8 +21,8 @@ celery_app = Celery(
         "agent.tasks.decision_tasks",
         "agent.tasks.content_tasks",
         "agent.tasks.comment_tasks",
-        "agent.tasks.report_tasks"
-    ]
+        "agent.tasks.report_tasks",
+    ],
 )
 
 # Celery configuration
@@ -56,7 +58,7 @@ celery_app.conf.update(
             "task": "agent.tasks.report_tasks.generate_weekly_report",
             "schedule": 604800.0,  # Every 7 days (weekly)
         },
-    }
+    },
 )
 
 if __name__ == "__main__":

@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 # Import Coqui TTS if available
 try:
     from TTS.api import TTS
+
     COQUI_AVAILABLE = True
 except ImportError:
     COQUI_AVAILABLE = False
@@ -25,6 +26,7 @@ except ImportError:
 
 from database import async_session, Post
 from voice_engine.services.tts_service import TTSService
+
 
 class EmotionAwareTTS:
     """
@@ -39,48 +41,48 @@ class EmotionAwareTTS:
 
         # Emotion mapping for Malayalam content
         self.emotion_config = {
-            'joy': {
-                'pitch_shift': 1.2,
-                'speed': 1.1,
-                'energy': 1.3,
-                'malayalam_phrases': ['സന്തോഷകരമായ', 'ആനന്ദകരമായ', 'ഉത്സാഹജനകമായ'],
-                'voice_style': 'energetic'
+            "joy": {
+                "pitch_shift": 1.2,
+                "speed": 1.1,
+                "energy": 1.3,
+                "malayalam_phrases": ["സന്തോഷകരമായ", "ആനന്ദകരമായ", "ഉത്സാഹജനകമായ"],
+                "voice_style": "energetic",
             },
-            'sadness': {
-                'pitch_shift': 0.9,
-                'speed': 0.9,
-                'energy': 0.7,
-                'malayalam_phrases': ['ദുഖകരമായ', 'സങ്കടകരമായ', 'കരുണാജനകമായ'],
-                'voice_style': 'calm'
+            "sadness": {
+                "pitch_shift": 0.9,
+                "speed": 0.9,
+                "energy": 0.7,
+                "malayalam_phrases": ["ദുഖകരമായ", "സങ്കടകരമായ", "കരുണാജനകമായ"],
+                "voice_style": "calm",
             },
-            'anger': {
-                'pitch_shift': 1.1,
-                'speed': 1.0,
-                'energy': 1.2,
-                'malayalam_phrases': ['ക്രോധജനകമായ', 'ക്ഷുഭിതമായ', 'തീക്ഷ്ണമായ'],
-                'voice_style': 'intense'
+            "anger": {
+                "pitch_shift": 1.1,
+                "speed": 1.0,
+                "energy": 1.2,
+                "malayalam_phrases": ["ക്രോധജനകമായ", "ക്ഷുഭിതമായ", "തീക്ഷ്ണമായ"],
+                "voice_style": "intense",
             },
-            'fear': {
-                'pitch_shift': 1.3,
-                'speed': 1.2,
-                'energy': 1.1,
-                'malayalam_phrases': ['ഭയങ്കരമായ', 'ഭീതിജനകമായ', 'അപകടകരമായ'],
-                'voice_style': 'urgent'
+            "fear": {
+                "pitch_shift": 1.3,
+                "speed": 1.2,
+                "energy": 1.1,
+                "malayalam_phrases": ["ഭയങ്കരമായ", "ഭീതിജനകമായ", "അപകടകരമായ"],
+                "voice_style": "urgent",
             },
-            'surprise': {
-                'pitch_shift': 1.1,
-                'speed': 1.0,
-                'energy': 1.2,
-                'malayalam_phrases': ['ആശ്ചര്യകരമായ', 'പ്രത്യാശയില്ലാത്ത', 'അപ്രതീക്ഷിതമായ'],
-                'voice_style': 'expressive'
+            "surprise": {
+                "pitch_shift": 1.1,
+                "speed": 1.0,
+                "energy": 1.2,
+                "malayalam_phrases": ["ആശ്ചര്യകരമായ", "പ്രത്യാശയില്ലാത്ത", "അപ്രതീക്ഷിതമായ"],
+                "voice_style": "expressive",
             },
-            'neutral': {
-                'pitch_shift': 1.0,
-                'speed': 1.0,
-                'energy': 1.0,
-                'malayalam_phrases': ['സാധാരണ', 'ശാന്തമായ', 'സമാധാനപരമായ'],
-                'voice_style': 'natural'
-            }
+            "neutral": {
+                "pitch_shift": 1.0,
+                "speed": 1.0,
+                "energy": 1.0,
+                "malayalam_phrases": ["സാധാരണ", "ശാന്തമായ", "സമാധാനപരമായ"],
+                "voice_style": "natural",
+            },
         }
 
         self._load_emotion_model()
@@ -94,15 +96,17 @@ class EmotionAwareTTS:
             # Use multilingual BERT for emotion detection
             model_name = "j-hartmann/emotion-english-distilroberta-base"
             self.emotion_tokenizer = AutoTokenizer.from_pretrained(model_name)
-            self.emotion_model = AutoModelForSequenceClassification.from_pretrained(model_name)
+            self.emotion_model = AutoModelForSequenceClassification.from_pretrained(
+                model_name
+            )
 
             # Add Malayalam emotion keywords for better detection
             self.malayalam_emotion_keywords = {
-                'joy': ['സന്തോഷം', 'ആനന്ദം', 'ഉത്സാഹം', 'ആഹ്ലാദം', 'ഖുശി'],
-                'sadness': ['ദുഖം', 'സങ്കടം', 'കരുണ', 'വ്യസനം', 'അസഹ്യം'],
-                'anger': ['ക്രോധം', 'ക്ഷോഭം', 'രോഷം', 'അകൃത്യം', 'അസഹനം'],
-                'fear': ['ഭയം', 'ഭീതി', 'അപകടം', 'ഭയങ്കരം', 'അന്തം'],
-                'surprise': ['ആശ്ചര്യം', 'പ്രത്യാശ', 'അദ്ഭുതം', 'അപ്രതീക്ഷിതം']
+                "joy": ["സന്തോഷം", "ആനന്ദം", "ഉത്സാഹം", "ആഹ്ലാദം", "ഖുശി"],
+                "sadness": ["ദുഖം", "സങ്കടം", "കരുണ", "വ്യസനം", "അസഹ്യം"],
+                "anger": ["ക്രോധം", "ക്ഷോഭം", "രോഷം", "അകൃത്യം", "അസഹനം"],
+                "fear": ["ഭയം", "ഭീതി", "അപകടം", "ഭയങ്കരം", "അന്തം"],
+                "surprise": ["ആശ്ചര്യം", "പ്രത്യാശ", "അദ്ഭുതം", "അപ്രതീക്ഷിതം"],
             }
 
         except Exception as e:
@@ -121,7 +125,9 @@ class EmotionAwareTTS:
                     logger.info("Loaded Malayalam TTS model")
                 except:
                     # Fallback to multilingual model
-                    self.tts_engine = TTS("tts_models/multilingual/multi-dataset/xtts_v2")
+                    self.tts_engine = TTS(
+                        "tts_models/multilingual/multi-dataset/xtts_v2"
+                    )
                     logger.info("Loaded multilingual TTS model")
             else:
                 logger.warning("Coqui TTS not available, using basic TTS")
@@ -131,8 +137,9 @@ class EmotionAwareTTS:
             logger.error(f"Failed to initialize TTS engine: {e}")
             self.tts_engine = None
 
-    async def generate_emotional_speech(self, text: str, emotion: str = None,
-                                      voice_clone_id: str = None) -> Dict[str, Any]:
+    async def generate_emotional_speech(
+        self, text: str, emotion: str = None, voice_clone_id: str = None
+    ) -> Dict[str, Any]:
         """
         Generate speech with emotion-aware processing and voice cloning.
         """
@@ -142,7 +149,9 @@ class EmotionAwareTTS:
                 emotion = await self._detect_emotion(text)
 
             # Get emotion configuration
-            emotion_config = self.emotion_config.get(emotion, self.emotion_config['neutral'])
+            emotion_config = self.emotion_config.get(
+                emotion, self.emotion_config["neutral"]
+            )
 
             # Apply Malayalam emotion enhancements
             enhanced_text = self._enhance_malayalam_text(text, emotion)
@@ -151,22 +160,26 @@ class EmotionAwareTTS:
             audio_data = await self._generate_base_speech(enhanced_text, emotion_config)
 
             # Apply emotion modifications
-            modified_audio = self._apply_emotion_modifications(audio_data, emotion_config)
+            modified_audio = self._apply_emotion_modifications(
+                audio_data, emotion_config
+            )
 
             # Apply voice cloning if requested
             if voice_clone_id and voice_clone_id in self.voice_clones:
-                modified_audio = await self._apply_voice_cloning(modified_audio, voice_clone_id)
+                modified_audio = await self._apply_voice_cloning(
+                    modified_audio, voice_clone_id
+                )
 
             # Convert to base64 for response
             audio_base64 = self._audio_to_base64(modified_audio)
 
             return {
-                'audio_base64': audio_base64,
-                'emotion_detected': emotion,
-                'text_enhanced': enhanced_text,
-                'voice_clone_applied': voice_clone_id is not None,
-                'processing_time': datetime.utcnow().isoformat(),
-                'malayalam_optimized': True
+                "audio_base64": audio_base64,
+                "emotion_detected": emotion,
+                "text_enhanced": enhanced_text,
+                "voice_clone_applied": voice_clone_id is not None,
+                "processing_time": datetime.utcnow().isoformat(),
+                "malayalam_optimized": True,
             }
 
         except Exception as e:
@@ -188,21 +201,27 @@ class EmotionAwareTTS:
                     return emotion
 
             # Use ML model for emotion detection
-            inputs = self.emotion_tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
+            inputs = self.emotion_tokenizer(
+                text, return_tensors="pt", truncation=True, max_length=512
+            )
 
             with torch.no_grad():
                 outputs = self.emotion_model(**inputs)
                 predictions = torch.softmax(outputs.logits, dim=1)
 
             # Map to emotion labels
-            emotion_labels = ['sadness', 'joy', 'anger', 'fear', 'surprise']
+            emotion_labels = ["sadness", "joy", "anger", "fear", "surprise"]
             predicted_idx = torch.argmax(predictions, dim=1).item()
 
-            return emotion_labels[predicted_idx] if predicted_idx < len(emotion_labels) else 'neutral'
+            return (
+                emotion_labels[predicted_idx]
+                if predicted_idx < len(emotion_labels)
+                else "neutral"
+            )
 
         except Exception as e:
             logger.error(f"Emotion detection failed: {e}")
-            return 'neutral'
+            return "neutral"
 
     def _rule_based_emotion_detection(self, text: str) -> str:
         """
@@ -211,46 +230,48 @@ class EmotionAwareTTS:
         text_lower = text.lower()
 
         # Malayalam emotion detection
-        if any(word in text for word in ['സന്തോഷം', 'ആനന്ദം', 'ഉത്സാഹം', 'ഖുശി']):
-            return 'joy'
-        elif any(word in text for word in ['ദുഖം', 'സങ്കടം', 'കരുണ', 'വ്യസനം']):
-            return 'sadness'
-        elif any(word in text for word in ['ക്രോധം', 'ക്ഷോഭം', 'രോഷം']):
-            return 'anger'
-        elif any(word in text for word in ['ഭയം', 'ഭീതി', 'അപകടം']):
-            return 'fear'
-        elif any(word in text for word in ['ആശ്ചര്യം', 'അദ്ഭുതം', 'പ്രത്യാശ']):
-            return 'surprise'
+        if any(word in text for word in ["സന്തോഷം", "ആനന്ദം", "ഉത്സാഹം", "ഖുശി"]):
+            return "joy"
+        elif any(word in text for word in ["ദുഖം", "സങ്കടം", "കരുണ", "വ്യസനം"]):
+            return "sadness"
+        elif any(word in text for word in ["ക്രോധം", "ക്ഷോഭം", "രോഷം"]):
+            return "anger"
+        elif any(word in text for word in ["ഭയം", "ഭീതി", "അപകടം"]):
+            return "fear"
+        elif any(word in text for word in ["ആശ്ചര്യം", "അദ്ഭുതം", "പ്രത്യാശ"]):
+            return "surprise"
 
         # English emotion detection
-        if any(word in text_lower for word in ['happy', 'joy', 'excited', 'great']):
-            return 'joy'
-        elif any(word in text_lower for word in ['sad', 'sorry', 'unfortunate', 'bad']):
-            return 'sadness'
-        elif any(word in text_lower for word in ['angry', 'mad', 'furious']):
-            return 'anger'
-        elif any(word in text_lower for word in ['scared', 'afraid', 'fear']):
-            return 'fear'
-        elif any(word in text_lower for word in ['surprised', 'amazing', 'wow']):
-            return 'surprise'
+        if any(word in text_lower for word in ["happy", "joy", "excited", "great"]):
+            return "joy"
+        elif any(word in text_lower for word in ["sad", "sorry", "unfortunate", "bad"]):
+            return "sadness"
+        elif any(word in text_lower for word in ["angry", "mad", "furious"]):
+            return "anger"
+        elif any(word in text_lower for word in ["scared", "afraid", "fear"]):
+            return "fear"
+        elif any(word in text_lower for word in ["surprised", "amazing", "wow"]):
+            return "surprise"
 
-        return 'neutral'
+        return "neutral"
 
     def _enhance_malayalam_text(self, text: str, emotion: str) -> str:
         """
         Enhance text with emotion-specific Malayalam phrases.
         """
-        emotion_config = self.emotion_config.get(emotion, self.emotion_config['neutral'])
+        emotion_config = self.emotion_config.get(
+            emotion, self.emotion_config["neutral"]
+        )
 
         # Add emotion-specific Malayalam phrases
-        if emotion_config['malayalam_phrases']:
+        if emotion_config["malayalam_phrases"]:
             # Insert phrase at natural break points
-            sentences = text.split('।')
+            sentences = text.split("।")
             if len(sentences) > 1:
                 # Add phrase to first sentence
-                emotion_phrase = np.random.choice(emotion_config['malayalam_phrases'])
+                emotion_phrase = np.random.choice(emotion_config["malayalam_phrases"])
                 sentences[0] = f"{sentences[0]} {emotion_phrase}"
-                enhanced_text = '।'.join(sentences)
+                enhanced_text = "।".join(sentences)
             else:
                 enhanced_text = text
         else:
@@ -258,7 +279,9 @@ class EmotionAwareTTS:
 
         return enhanced_text
 
-    async def _generate_base_speech(self, text: str, emotion_config: Dict[str, Any]) -> np.ndarray:
+    async def _generate_base_speech(
+        self, text: str, emotion_config: Dict[str, Any]
+    ) -> np.ndarray:
         """
         Generate base speech using TTS engine.
         """
@@ -281,7 +304,9 @@ class EmotionAwareTTS:
         """
         try:
             # Use existing TTS service as fallback
-            result = await self.tts_service.generate_speech(text, voice="malayalam_female")
+            result = await self.tts_service.generate_speech(
+                text, voice="malayalam_female"
+            )
 
             # Convert base64 back to numpy array (simplified)
             # In real implementation, this would decode properly
@@ -292,7 +317,9 @@ class EmotionAwareTTS:
             # Return silence
             return np.zeros(16000)
 
-    def _apply_emotion_modifications(self, audio: np.ndarray, emotion_config: Dict[str, Any]) -> np.ndarray:
+    def _apply_emotion_modifications(
+        self, audio: np.ndarray, emotion_config: Dict[str, Any]
+    ) -> np.ndarray:
         """
         Apply emotion-specific audio modifications.
         """
@@ -300,17 +327,17 @@ class EmotionAwareTTS:
             modified_audio = audio.copy()
 
             # Apply pitch shift
-            pitch_shift = emotion_config['pitch_shift']
+            pitch_shift = emotion_config["pitch_shift"]
             if pitch_shift != 1.0:
                 modified_audio = self._pitch_shift_audio(modified_audio, pitch_shift)
 
             # Apply speed modification
-            speed = emotion_config['speed']
+            speed = emotion_config["speed"]
             if speed != 1.0:
                 modified_audio = self._change_audio_speed(modified_audio, speed)
 
             # Apply energy modification
-            energy = emotion_config['energy']
+            energy = emotion_config["energy"]
             if energy != 1.0:
                 modified_audio = modified_audio * energy
                 # Normalize to prevent clipping
@@ -374,7 +401,9 @@ class EmotionAwareTTS:
             logger.warning(f"Speed change failed: {e}")
             return audio
 
-    async def _apply_voice_cloning(self, audio: np.ndarray, voice_clone_id: str) -> np.ndarray:
+    async def _apply_voice_cloning(
+        self, audio: np.ndarray, voice_clone_id: str
+    ) -> np.ndarray:
         """
         Apply voice cloning using stored voice samples.
         """
@@ -388,15 +417,17 @@ class EmotionAwareTTS:
             # This would use techniques like voice conversion or style transfer
 
             # For now, apply basic filtering based on voice characteristics
-            if voice_data.get('age') == 'young':
+            if voice_data.get("age") == "young":
                 # Apply high-pass filter for younger voice
                 from scipy.signal import butter, filtfilt
-                b, a = butter(2, 0.1, 'high')
+
+                b, a = butter(2, 0.1, "high")
                 audio = filtfilt(b, a, audio)
-            elif voice_data.get('age') == 'old':
+            elif voice_data.get("age") == "old":
                 # Apply low-pass filter for older voice
                 from scipy.signal import butter, filtfilt
-                b, a = butter(2, 0.3, 'low')
+
+                b, a = butter(2, 0.3, "low")
                 audio = filtfilt(b, a, audio)
 
             return audio
@@ -412,11 +443,11 @@ class EmotionAwareTTS:
         try:
             # Convert to WAV format in memory
             buffer = io.BytesIO()
-            sf.write(buffer, audio, 22050, format='wav')
+            sf.write(buffer, audio, 22050, format="wav")
             buffer.seek(0)
 
             # Encode to base64
-            audio_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+            audio_base64 = base64.b64encode(buffer.read()).decode("utf-8")
             return audio_base64
 
         except Exception as e:
@@ -429,30 +460,34 @@ class EmotionAwareTTS:
         """
         try:
             # Use basic TTS service
-            result = await self.tts_service.generate_speech(text, voice="malayalam_female")
+            result = await self.tts_service.generate_speech(
+                text, voice="malayalam_female"
+            )
 
             return {
-                'audio_base64': result.get('audio_base64', ''),
-                'emotion_detected': 'neutral',
-                'text_enhanced': text,
-                'voice_clone_applied': False,
-                'processing_time': datetime.utcnow().isoformat(),
-                'malayalam_optimized': False
+                "audio_base64": result.get("audio_base64", ""),
+                "emotion_detected": "neutral",
+                "text_enhanced": text,
+                "voice_clone_applied": False,
+                "processing_time": datetime.utcnow().isoformat(),
+                "malayalam_optimized": False,
             }
 
         except Exception as e:
             logger.error(f"Fallback speech generation failed: {e}")
             return {
-                'audio_base64': '',
-                'emotion_detected': 'neutral',
-                'text_enhanced': text,
-                'voice_clone_applied': False,
-                'processing_time': datetime.utcnow().isoformat(),
-                'malayalam_optimized': False,
-                'error': 'Speech generation failed'
+                "audio_base64": "",
+                "emotion_detected": "neutral",
+                "text_enhanced": text,
+                "voice_clone_applied": False,
+                "processing_time": datetime.utcnow().isoformat(),
+                "malayalam_optimized": False,
+                "error": "Speech generation failed",
             }
 
-    async def create_voice_clone(self, voice_samples: List[bytes], metadata: Dict[str, Any]) -> str:
+    async def create_voice_clone(
+        self, voice_samples: List[bytes], metadata: Dict[str, Any]
+    ) -> str:
         """
         Create a voice clone from audio samples.
         """
@@ -461,9 +496,9 @@ class EmotionAwareTTS:
 
             # Store voice samples and metadata
             self.voice_clones[clone_id] = {
-                'samples': voice_samples,
-                'metadata': metadata,
-                'created_at': datetime.utcnow()
+                "samples": voice_samples,
+                "metadata": metadata,
+                "created_at": datetime.utcnow(),
             }
 
             # In production, this would train a voice cloning model
@@ -482,11 +517,13 @@ class EmotionAwareTTS:
         """
         clones = []
         for clone_id, data in self.voice_clones.items():
-            clones.append({
-                'id': clone_id,
-                'metadata': data['metadata'],
-                'created_at': data['created_at'].isoformat()
-            })
+            clones.append(
+                {
+                    "id": clone_id,
+                    "metadata": data["metadata"],
+                    "created_at": data["created_at"].isoformat(),
+                }
+            )
 
         return clones
 
@@ -499,17 +536,19 @@ class EmotionAwareTTS:
 
             # Analyze content characteristics
             word_count = len(content.split())
-            has_questions = '?' in content
-            has_exclamation = '!' in content
+            has_questions = "?" in content
+            has_exclamation = "!" in content
             is_malayalam = any(ord(char) > 127 for char in content)
 
             # Recommend voice based on analysis
             recommendations = {
-                'emotion': emotion,
-                'suggested_voice': self._recommend_voice(emotion, word_count, has_questions, has_exclamation),
-                'is_malayalam': is_malayalam,
-                'content_length': word_count,
-                'tone_suggestions': self._get_tone_suggestions(emotion)
+                "emotion": emotion,
+                "suggested_voice": self._recommend_voice(
+                    emotion, word_count, has_questions, has_exclamation
+                ),
+                "is_malayalam": is_malayalam,
+                "content_length": word_count,
+                "tone_suggestions": self._get_tone_suggestions(emotion),
             }
 
             return recommendations
@@ -517,34 +556,36 @@ class EmotionAwareTTS:
         except Exception as e:
             logger.error(f"Content analysis failed: {e}")
             return {
-                'emotion': 'neutral',
-                'suggested_voice': 'malayalam_female',
-                'is_malayalam': False,
-                'content_length': 0,
-                'tone_suggestions': ['natural']
+                "emotion": "neutral",
+                "suggested_voice": "malayalam_female",
+                "is_malayalam": False,
+                "content_length": 0,
+                "tone_suggestions": ["natural"],
             }
 
-    def _recommend_voice(self, emotion: str, word_count: int, has_questions: bool, has_exclamation: bool) -> str:
+    def _recommend_voice(
+        self, emotion: str, word_count: int, has_questions: bool, has_exclamation: bool
+    ) -> str:
         """
         Recommend voice based on content analysis.
         """
         # Base recommendation
-        if emotion == 'joy':
-            voice = 'malayalam_female_young'
-        elif emotion == 'sadness':
-            voice = 'malayalam_female_calm'
-        elif emotion in ['anger', 'fear']:
-            voice = 'malayalam_male'
+        if emotion == "joy":
+            voice = "malayalam_female_young"
+        elif emotion == "sadness":
+            voice = "malayalam_female_calm"
+        elif emotion in ["anger", "fear"]:
+            voice = "malayalam_male"
         else:
-            voice = 'malayalam_female'
+            voice = "malayalam_female"
 
         # Adjust based on content type
         if has_questions:
-            voice += '_curious'
+            voice += "_curious"
         elif has_exclamation:
-            voice += '_excited'
+            voice += "_excited"
         elif word_count > 100:
-            voice += '_storyteller'
+            voice += "_storyteller"
 
         return voice
 
@@ -553,12 +594,12 @@ class EmotionAwareTTS:
         Get tone suggestions based on emotion.
         """
         tone_suggestions = {
-            'joy': ['energetic', 'warm', 'enthusiastic'],
-            'sadness': ['calm', 'gentle', 'soothing'],
-            'anger': ['firm', 'direct', 'intense'],
-            'fear': ['urgent', 'concerned', 'serious'],
-            'surprise': ['expressive', 'animated', 'lively'],
-            'neutral': ['natural', 'balanced', 'clear']
+            "joy": ["energetic", "warm", "enthusiastic"],
+            "sadness": ["calm", "gentle", "soothing"],
+            "anger": ["firm", "direct", "intense"],
+            "fear": ["urgent", "concerned", "serious"],
+            "surprise": ["expressive", "animated", "lively"],
+            "neutral": ["natural", "balanced", "clear"],
         }
 
-        return tone_suggestions.get(emotion, ['natural'])
+        return tone_suggestions.get(emotion, ["natural"])

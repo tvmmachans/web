@@ -12,6 +12,7 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
+
 class TTSService:
     def __init__(self):
         self.models = {}
@@ -19,7 +20,9 @@ class TTSService:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         logger.info(f"TTS Service initialized with device: {self.device}")
 
-    async def load_model(self, model_name: str = "tts_models/ml/cv/vakyansh/wav2vec2-malayalam"):
+    async def load_model(
+        self, model_name: str = "tts_models/ml/cv/vakyansh/wav2vec2-malayalam"
+    ):
         """Load TTS model asynchronously"""
         if model_name in self.models:
             return self.models[model_name]
@@ -27,8 +30,7 @@ class TTSService:
         try:
             loop = asyncio.get_event_loop()
             tts = await loop.run_in_executor(
-                self.executor,
-                lambda: TTS(model_name).to(self.device)
+                self.executor, lambda: TTS(model_name).to(self.device)
             )
             self.models[model_name] = tts
             logger.info(f"Loaded TTS model: {model_name}")
@@ -41,7 +43,7 @@ class TTSService:
         self,
         text: str,
         voice_profile: Optional[Dict[str, Any]] = None,
-        settings: Optional[Dict[str, Any]] = None
+        settings: Optional[Dict[str, Any]] = None,
     ) -> bytes:
         """Generate speech from text"""
         try:
@@ -50,15 +52,14 @@ class TTSService:
             tts = await self.load_model(model_name)
 
             # Apply settings
-            emotion = settings.get('emotion', 'neutral') if settings else 'neutral'
-            speed = settings.get('speed', 1.0) if settings else 1.0
-            pitch = settings.get('pitch', 1.0) if settings else 1.0
+            emotion = settings.get("emotion", "neutral") if settings else "neutral"
+            speed = settings.get("speed", 1.0) if settings else 1.0
+            pitch = settings.get("pitch", 1.0) if settings else 1.0
 
             # Generate speech
             loop = asyncio.get_event_loop()
             wav = await loop.run_in_executor(
-                self.executor,
-                lambda: tts.tts(text=text, emotion=emotion)
+                self.executor, lambda: tts.tts(text=text, emotion=emotion)
             )
 
             # Apply speed and pitch modifications if needed
@@ -67,8 +68,9 @@ class TTSService:
 
             # Convert to bytes
             import io
+
             buffer = io.BytesIO()
-            sf.write(buffer, np.array(wav), 22050, format='wav')
+            sf.write(buffer, np.array(wav), 22050, format="wav")
             buffer.seek(0)
             return buffer.read()
 
@@ -85,7 +87,7 @@ class TTSService:
 
             # Apply pitch change
             if pitch != 1.0:
-                wav = librosa.effects.pitch_shift(wav, sr=22050, n_steps=pitch*2)
+                wav = librosa.effects.pitch_shift(wav, sr=22050, n_steps=pitch * 2)
 
             return wav
         except Exception as e:
@@ -97,7 +99,7 @@ class TTSService:
         return {
             "malayalam": "tts_models/ml/cv/vakyansh/wav2vec2-malayalam",
             "english": "tts_models/en/ljspeech/tacotron2-DDC_ph",
-            "hindi": "tts_models/hi/cv/vakyansh/wav2vec2-hindi"
+            "hindi": "tts_models/hi/cv/vakyansh/wav2vec2-hindi",
         }
 
     async def analyze_voice_quality(self, audio_path: str) -> Dict[str, float]:
@@ -128,12 +130,15 @@ class TTSService:
                 "stability": float(1.0 - mean_zcr),  # Lower ZCR = more stable
                 "brightness": float(mean_centroid / 1000),  # kHz
                 "snr": float(snr),
-                "overall_quality": float((mean_rms * 0.3 + (1.0 - mean_zcr) * 0.3 + min(snr/60, 1.0) * 0.4))
+                "overall_quality": float(
+                    (mean_rms * 0.3 + (1.0 - mean_zcr) * 0.3 + min(snr / 60, 1.0) * 0.4)
+                ),
             }
 
         except Exception as e:
             logger.error(f"Voice quality analysis failed: {e}")
             return {"error": str(e)}
+
 
 # Global TTS service instance
 tts_service = TTSService()

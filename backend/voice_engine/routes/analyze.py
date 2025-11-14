@@ -12,19 +12,21 @@ from voice_engine.models.voice_models import VoiceProfile, AudioSample
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+
 class AnalyzeAudioRequest(BaseModel):
     audio_url: str
     language: str = "ml"
+
 
 class AnalyzeAudioResponse(BaseModel):
     quality_score: float
     metrics: Dict[str, float]
     suggestions: List[str]
 
+
 @router.post("/audio", response_model=AnalyzeAudioResponse)
 async def analyze_audio_quality(
-    request: AnalyzeAudioRequest,
-    db: AsyncSession = Depends(get_db)
+    request: AnalyzeAudioRequest, db: AsyncSession = Depends(get_db)
 ):
     """Analyze audio quality and provide feedback"""
     try:
@@ -34,7 +36,8 @@ async def analyze_audio_quality(
         # Save temporarily for analysis
         import tempfile
         import os
-        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_file:
+
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
             temp_file.write(audio_data)
             temp_path = temp_file.name
 
@@ -46,9 +49,9 @@ async def analyze_audio_quality(
             suggestions = generate_improvement_suggestions(quality_metrics)
 
             return AnalyzeAudioResponse(
-                quality_score=quality_metrics.get('overall_quality', 0.5),
+                quality_score=quality_metrics.get("overall_quality", 0.5),
                 metrics=quality_metrics,
-                suggestions=suggestions
+                suggestions=suggestions,
             )
 
         finally:
@@ -59,14 +62,15 @@ async def analyze_audio_quality(
         logger.error(f"Audio analysis failed: {e}")
         raise HTTPException(status_code=500, detail=f"Audio analysis failed: {str(e)}")
 
+
 def generate_improvement_suggestions(metrics: Dict[str, float]) -> List[str]:
     """Generate improvement suggestions based on quality metrics"""
     suggestions = []
 
-    volume = metrics.get('volume', 0.5)
-    stability = metrics.get('stability', 0.5)
-    brightness = metrics.get('brightness', 0.5)
-    snr = metrics.get('snr', 30)
+    volume = metrics.get("volume", 0.5)
+    stability = metrics.get("stability", 0.5)
+    brightness = metrics.get("brightness", 0.5)
+    snr = metrics.get("snr", 30)
 
     if volume < 0.3:
         suggestions.append("സംസാരം കൂടുതൽ ഉച്ചത്തിൽ ആയിരിക്കണം")
@@ -91,13 +95,16 @@ def generate_improvement_suggestions(metrics: Dict[str, float]) -> List[str]:
 
     return suggestions
 
+
 @router.get("/profile/{profile_id}/samples")
 async def get_profile_samples(profile_id: int, db: AsyncSession = Depends(get_db)):
     """Get audio samples for a voice profile"""
     try:
         result = await db.execute(
-            text("SELECT id, audio_url, transcript, duration, quality_score, created_at FROM audio_samples WHERE voice_profile_id = :profile_id ORDER BY created_at DESC"),
-            {"profile_id": profile_id}
+            text(
+                "SELECT id, audio_url, transcript, duration, quality_score, created_at FROM audio_samples WHERE voice_profile_id = :profile_id ORDER BY created_at DESC"
+            ),
+            {"profile_id": profile_id},
         )
         samples = result.fetchall()
 
@@ -108,7 +115,7 @@ async def get_profile_samples(profile_id: int, db: AsyncSession = Depends(get_db
                 "transcript": s.transcript,
                 "duration": s.duration,
                 "quality_score": s.quality_score,
-                "created_at": s.created_at.isoformat()
+                "created_at": s.created_at.isoformat(),
             }
             for s in samples
         ]
@@ -117,11 +124,10 @@ async def get_profile_samples(profile_id: int, db: AsyncSession = Depends(get_db
         logger.error(f"Failed to get profile samples: {e}")
         raise HTTPException(status_code=500, detail="Failed to get profile samples")
 
+
 @router.post("/profile/{profile_id}/sample/{sample_id}/analyze")
 async def analyze_sample_quality(
-    profile_id: int,
-    sample_id: int,
-    db: AsyncSession = Depends(get_db)
+    profile_id: int, sample_id: int, db: AsyncSession = Depends(get_db)
 ):
     """Analyze quality of a specific audio sample"""
     try:
@@ -137,10 +143,7 @@ async def analyze_sample_quality(
         sample.quality_score = analysis_result.quality_score
         await db.commit()
 
-        return {
-            "sample_id": sample_id,
-            "analysis": analysis_result.dict()
-        }
+        return {"sample_id": sample_id, "analysis": analysis_result.dict()}
 
     except HTTPException:
         raise
@@ -148,21 +151,26 @@ async def analyze_sample_quality(
         logger.error(f"Sample analysis failed: {e}")
         raise HTTPException(status_code=500, detail="Sample analysis failed")
 
+
 @router.get("/profile/{profile_id}/stats")
 async def get_profile_stats(profile_id: int, db: AsyncSession = Depends(get_db)):
     """Get statistics for a voice profile"""
     try:
         # Get sample count and average quality
         result = await db.execute(
-            text("SELECT COUNT(*) as sample_count, AVG(quality_score) as avg_quality, AVG(duration) as avg_duration FROM audio_samples WHERE voice_profile_id = :profile_id"),
-            {"profile_id": profile_id}
+            text(
+                "SELECT COUNT(*) as sample_count, AVG(quality_score) as avg_quality, AVG(duration) as avg_duration FROM audio_samples WHERE voice_profile_id = :profile_id"
+            ),
+            {"profile_id": profile_id},
         )
         stats = result.first()
 
         # Get training jobs count
         result = await db.execute(
-            text("SELECT COUNT(*) as training_jobs FROM training_jobs WHERE voice_profile_id = :profile_id"),
-            {"profile_id": profile_id}
+            text(
+                "SELECT COUNT(*) as training_jobs FROM training_jobs WHERE voice_profile_id = :profile_id"
+            ),
+            {"profile_id": profile_id},
         )
         training_count = result.scalar()
 
@@ -171,12 +179,13 @@ async def get_profile_stats(profile_id: int, db: AsyncSession = Depends(get_db))
             "sample_count": stats.sample_count or 0,
             "average_quality": float(stats.avg_quality or 0),
             "average_duration": float(stats.avg_duration or 0),
-            "training_jobs_count": training_count or 0
+            "training_jobs_count": training_count or 0,
         }
 
     except Exception as e:
         logger.error(f"Failed to get profile stats: {e}")
         raise HTTPException(status_code=500, detail="Failed to get profile stats")
+
 
 @router.get("/languages")
 async def get_supported_languages():
@@ -185,6 +194,6 @@ async def get_supported_languages():
         "languages": [
             {"code": "ml", "name": "മലയാളം", "native_name": "Malayalam"},
             {"code": "en", "name": "English", "native_name": "English"},
-            {"code": "hi", "name": "हिंदी", "native_name": "Hindi"}
+            {"code": "hi", "name": "हिंदी", "native_name": "Hindi"},
         ]
     }

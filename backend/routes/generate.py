@@ -7,19 +7,24 @@ from typing import List, Dict, Optional
 
 router = APIRouter()
 
+
 class CaptionRequest(BaseModel):
     content: str
     language: Optional[str] = "ml"  # Default to Malayalam
 
+
 class CaptionResponse(BaseModel):
     caption: str
+
 
 class SubtitlesRequest(BaseModel):
     video_path: str
     language: Optional[str] = "ml"
 
+
 class SubtitlesResponse(BaseModel):
     subtitles: List[Dict]
+
 
 @router.post("/caption", response_model=CaptionResponse)
 async def generate_caption(request: CaptionRequest):
@@ -32,13 +37,16 @@ async def generate_caption(request: CaptionRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.post("/subtitles", response_model=SubtitlesResponse)
 async def generate_subtitles(request: SubtitlesRequest):
     """
     Generate subtitles for video.
     """
     try:
-        subtitles = await generate_subtitles_service(request.video_path, request.language)
+        subtitles = await generate_subtitles_service(
+            request.video_path, request.language
+        )
         return SubtitlesResponse(subtitles=subtitles)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

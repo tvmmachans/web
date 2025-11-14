@@ -5,16 +5,21 @@ from datetime import datetime, timedelta
 import sys
 
 # Add backend to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'backend'))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
 
 from agent.config.settings import (
-    REPORT_GENERATION_DAY, REPORT_GENERATION_HOUR,
-    EMAIL_ENABLED, WHATSAPP_ENABLED, EMAIL_RECIPIENT, WHATSAPP_NUMBER
+    REPORT_GENERATION_DAY,
+    REPORT_GENERATION_HOUR,
+    EMAIL_ENABLED,
+    WHATSAPP_ENABLED,
+    EMAIL_RECIPIENT,
+    WHATSAPP_NUMBER,
 )
 from agent.services.analytics_agent import AnalyticsAgent
 from openai import OpenAI
 
 logger = logging.getLogger(__name__)
+
 
 class ReportGenerator:
     """
@@ -46,14 +51,17 @@ class ReportGenerator:
                 "summary": {
                     "total_posts": analysis.get("total_posts", 0),
                     "total_views": analysis.get("total_views", 0),
-                    "total_engagement": analysis.get("total_likes", 0) + analysis.get("total_comments", 0),
-                    "average_engagement_rate": analysis.get("average_engagement_rate", 0)
+                    "total_engagement": analysis.get("total_likes", 0)
+                    + analysis.get("total_comments", 0),
+                    "average_engagement_rate": analysis.get(
+                        "average_engagement_rate", 0
+                    ),
                 },
                 "platform_breakdown": analysis.get("platform_breakdown", {}),
                 "insights": insights,
                 "recommendations": await self._generate_recommendations(analysis),
                 "trends": await self._analyze_trends(analysis),
-                "generated_at": datetime.utcnow().isoformat()
+                "generated_at": datetime.utcnow().isoformat(),
             }
 
             # Send notifications
@@ -92,12 +100,15 @@ class ReportGenerator:
                 model="gpt-4",
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=400,
-                temperature=0.7
+                temperature=0.7,
             )
 
             insights_text = response.choices[0].message.content.strip()
-            insights = [line.strip() for line in insights_text.split('\n')
-                       if line.strip() and not line.startswith('#')]
+            insights = [
+                line.strip()
+                for line in insights_text.split("\n")
+                if line.strip() and not line.startswith("#")
+            ]
 
             return insights[:6]
 
@@ -116,23 +127,35 @@ class ReportGenerator:
             total_posts = analysis.get("total_posts", 0)
 
             if avg_engagement < 0.02:
-                recommendations.append("Focus on creating more engaging content with compelling hooks")
-                recommendations.append("Experiment with different posting times to find optimal audience engagement")
+                recommendations.append(
+                    "Focus on creating more engaging content with compelling hooks"
+                )
+                recommendations.append(
+                    "Experiment with different posting times to find optimal audience engagement"
+                )
 
             if total_posts < 5:
-                recommendations.append("Increase posting frequency to build momentum and audience engagement")
+                recommendations.append(
+                    "Increase posting frequency to build momentum and audience engagement"
+                )
 
             platform_breakdown = analysis.get("platform_breakdown", {})
             if len(platform_breakdown) > 1:
-                best_platform = max(platform_breakdown.items(),
-                                  key=lambda x: x[1].get("avg_engagement", 0))
-                recommendations.append(f"Consider focusing more on {best_platform[0]} where engagement is higher")
+                best_platform = max(
+                    platform_breakdown.items(),
+                    key=lambda x: x[1].get("avg_engagement", 0),
+                )
+                recommendations.append(
+                    f"Consider focusing more on {best_platform[0]} where engagement is higher"
+                )
 
-            recommendations.extend([
-                "Analyze top-performing posts to identify successful content patterns",
-                "Engage more actively with audience comments to build community",
-                "Experiment with different content formats (short videos, live sessions, etc.)"
-            ])
+            recommendations.extend(
+                [
+                    "Analyze top-performing posts to identify successful content patterns",
+                    "Engage more actively with audience comments to build community",
+                    "Experiment with different content formats (short videos, live sessions, etc.)",
+                ]
+            )
 
             return recommendations[:5]
 
@@ -151,7 +174,7 @@ class ReportGenerator:
                 "engagement_trend": "stable",  # increasing, decreasing, stable
                 "platform_performance": "consistent",
                 "content_effectiveness": "good",
-                "audience_growth": "steady"
+                "audience_growth": "steady",
             }
 
             # Simple trend detection
@@ -200,12 +223,14 @@ class ReportGenerator:
 🔍 Key Insights:
 """
 
-            insights = report.get('insights', [])[:3]  # Top 3 insights
+            insights = report.get("insights", [])[:3]  # Top 3 insights
             for i, insight in enumerate(insights, 1):
                 summary += f"{i}. {insight}\n"
 
             summary += "\n💡 Recommendations:\n"
-            recommendations = report.get('recommendations', [])[:2]  # Top 2 recommendations
+            recommendations = report.get("recommendations", [])[
+                :2
+            ]  # Top 2 recommendations
             for i, rec in enumerate(recommendations, 1):
                 summary += f"{i}. {rec}\n"
 
@@ -251,7 +276,9 @@ class ReportGenerator:
                 days_ahead = 7
 
             next_report = now + timedelta(days=days_ahead)
-            next_report = next_report.replace(hour=REPORT_GENERATION_HOUR, minute=0, second=0, microsecond=0)
+            next_report = next_report.replace(
+                hour=REPORT_GENERATION_HOUR, minute=0, second=0, microsecond=0
+            )
 
             logger.info(f"Next weekly report scheduled for: {next_report}")
 
@@ -271,5 +298,5 @@ class ReportGenerator:
             "report_hour": REPORT_GENERATION_HOUR,
             "email_enabled": EMAIL_ENABLED,
             "whatsapp_enabled": WHATSAPP_ENABLED,
-            "last_report": None  # Would track in database
+            "last_report": None,  # Would track in database
         }

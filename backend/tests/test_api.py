@@ -44,7 +44,10 @@ def test_cors_headers():
     """Test that CORS headers are present"""
     response = client.options("/health")
     # CORS preflight should be handled
-    assert response.status_code in [200, 405]  # OPTIONS may return 405 if not explicitly handled
+    assert response.status_code in [
+        200,
+        405,
+    ]  # OPTIONS may return 405 if not explicitly handled
 
 
 def test_api_docs():
@@ -60,4 +63,3 @@ def test_openapi_schema():
     data = response.json()
     assert "openapi" in data
     assert "info" in data
-

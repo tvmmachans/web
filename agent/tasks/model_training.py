@@ -11,8 +11,9 @@ from sklearn.metrics import mean_absolute_error, r2_score
 
 logger = logging.getLogger(__name__)
 
-celery_app = Celery('model_training')
-celery_app.config_from_object('agent.config.settings')
+celery_app = Celery("model_training")
+celery_app.config_from_object("agent.config.settings")
+
 
 class ModelTrainer:
     def __init__(self):
@@ -29,7 +30,8 @@ class ModelTrainer:
             # Get posts with analytics from the last N days
             cutoff_date = datetime.utcnow() - timedelta(days=days_back)
 
-            result = await session.execute("""
+            result = await session.execute(
+                """
                 SELECT
                     p.id, p.title, p.description, p.platform, p.created_at,
                     a.views, a.likes, a.comments, a.shares, a.engagement_rate,
@@ -40,24 +42,32 @@ class ModelTrainer:
                 WHERE p.created_at >= ?
                 AND a.views IS NOT NULL
                 ORDER BY p.created_at DESC
-            """, (cutoff_date,))
+            """,
+                (cutoff_date,),
+            )
 
             training_data = []
             for row in result.fetchall():
                 features = row.features if row.features else self.extract_features(row)
-                actual_performance = row.actual_performance if row.actual_performance else {
-                    'views': row.views or 0,
-                    'likes': row.likes or 0,
-                    'comments': row.comments or 0,
-                    'engagement_rate': row.engagement_rate or 0
-                }
+                actual_performance = (
+                    row.actual_performance
+                    if row.actual_performance
+                    else {
+                        "views": row.views or 0,
+                        "likes": row.likes or 0,
+                        "comments": row.comments or 0,
+                        "engagement_rate": row.engagement_rate or 0,
+                    }
+                )
 
-                training_data.append({
-                    'features': features,
-                    'actual_performance': actual_performance,
-                    'post_id': row.id,
-                    'platform': row.platform
-                })
+                training_data.append(
+                    {
+                        "features": features,
+                        "actual_performance": actual_performance,
+                        "post_id": row.id,
+                        "platform": row.platform,
+                    }
+                )
 
             return training_data
 
@@ -69,16 +79,17 @@ class ModelTrainer:
         description = post_data.description or ""
 
         return {
-            'title_length': len(title),
-            'description_length': len(description),
-            'has_hashtags': '#' in title + description,
-            'has_emojis': any(ord(char) > 127 for char in title + description),
-            'platform': post_data.platform,
-            'hour_posted': post_data.created_at.hour,
-            'day_of_week': post_data.created_at.weekday(),
-            'is_weekend': post_data.created_at.weekday() >= 5,
-            'word_count': len((title + description).split()),
-            'avg_word_length': sum(len(word) for word in (title + description).split()) / max(1, len((title + description).split()))
+            "title_length": len(title),
+            "description_length": len(description),
+            "has_hashtags": "#" in title + description,
+            "has_emojis": any(ord(char) > 127 for char in title + description),
+            "platform": post_data.platform,
+            "hour_posted": post_data.created_at.hour,
+            "day_of_week": post_data.created_at.weekday(),
+            "is_weekend": post_data.created_at.weekday() >= 5,
+            "word_count": len((title + description).split()),
+            "avg_word_length": sum(len(word) for word in (title + description).split())
+            / max(1, len((title + description).split())),
         }
 
     async def train_engagement_model(self):
@@ -101,19 +112,23 @@ class ModelTrainer:
             y_engagement = []
 
             for data in training_data:
-                X.append(list(data['features'].values()))
-                y_views.append(data['actual_performance']['views'])
-                y_engagement.append(data['actual_performance']['engagement_rate'])
+                X.append(list(data["features"].values()))
+                y_views.append(data["actual_performance"]["views"])
+                y_engagement.append(data["actual_performance"]["engagement_rate"])
 
             # Train models
             self.advanced_models.train_engagement_predictor(X, y_engagement)
             self.advanced_models.train_view_predictor(X, y_views)
 
             # Evaluate models
-            predictions_engagement = self.advanced_models.predict_engagement(X[:10])  # Test on subset
+            predictions_engagement = self.advanced_models.predict_engagement(
+                X[:10]
+            )  # Test on subset
             predictions_views = self.advanced_models.predict_views(X[:10])
 
-            mae_engagement = mean_absolute_error(y_engagement[:10], predictions_engagement)
+            mae_engagement = mean_absolute_error(
+                y_engagement[:10], predictions_engagement
+            )
             r2_engagement = r2_score(y_engagement[:10], predictions_engagement)
 
             mae_views = mean_absolute_error(y_views[:10], predictions_views)
@@ -125,7 +140,13 @@ class ModelTrainer:
                 "xgboost",
                 {"mae": mae_engagement, "r2": r2_engagement},
                 len(training_data),
-                self.advanced_models.engagement_model.feature_importances_.tolist() if hasattr(self.advanced_models.engagement_model, 'feature_importances_') else []
+                (
+                    self.advanced_models.engagement_model.feature_importances_.tolist()
+                    if hasattr(
+                        self.advanced_models.engagement_model, "feature_importances_"
+                    )
+                    else []
+                ),
             )
 
             await self.save_model_metrics(
@@ -133,13 +154,19 @@ class ModelTrainer:
                 "xgboost",
                 {"mae": mae_views, "r2": r2_views},
                 len(training_data),
-                self.advanced_models.view_model.feature_importances_.tolist() if hasattr(self.advanced_models.view_model, 'feature_importances_') else []
+                (
+                    self.advanced_models.view_model.feature_importances_.tolist()
+                    if hasattr(self.advanced_models.view_model, "feature_importances_")
+                    else []
+                ),
             )
 
             # Save models
             self.save_models()
 
-            logger.info(f"Engagement model training completed. MAE: {mae_engagement:.4f}, R2: {r2_engagement:.4f}")
+            logger.info(
+                f"Engagement model training completed. MAE: {mae_engagement:.4f}, R2: {r2_engagement:.4f}"
+            )
             return True
 
         except Exception as e:
@@ -161,8 +188,8 @@ class ModelTrainer:
                 return False
 
             # Prepare data for DistilBERT fine-tuning
-            texts = [data['caption'] for data in training_data]
-            scores = [data['performance_score'] for data in training_data]
+            texts = [data["caption"] for data in training_data]
+            scores = [data["performance_score"] for data in training_data]
 
             # Fine-tune the model
             self.advanced_models.train_caption_optimizer(texts, scores)
@@ -176,10 +203,12 @@ class ModelTrainer:
                 "distilbert",
                 {"training_samples": len(training_data)},
                 len(training_data),
-                []
+                [],
             )
 
-            logger.info(f"Caption optimizer training completed with {len(training_data)} samples")
+            logger.info(
+                f"Caption optimizer training completed with {len(training_data)} samples"
+            )
             return True
 
         except Exception as e:
@@ -191,7 +220,8 @@ class ModelTrainer:
         Collect caption performance data for training.
         """
         async with async_session() as session:
-            result = await session.execute("""
+            result = await session.execute(
+                """
                 SELECT
                     p.ai_caption,
                     a.views, a.likes, a.comments, a.engagement_rate,
@@ -203,23 +233,27 @@ class ModelTrainer:
                 AND a.views IS NOT NULL
                 AND p.created_at >= ?
                 ORDER BY p.created_at DESC
-            """, (datetime.utcnow() - timedelta(days=90),))
+            """,
+                (datetime.utcnow() - timedelta(days=90),),
+            )
 
             training_data = []
             for row in result.fetchall():
                 if row.ai_caption and len(row.ai_caption.strip()) > 10:
                     # Calculate performance score based on engagement
                     performance_score = (
-                        (row.views or 0) * 0.3 +
-                        (row.likes or 0) * 0.3 +
-                        (row.comments or 0) * 0.2 +
-                        (row.engagement_rate or 0) * 0.2
+                        (row.views or 0) * 0.3
+                        + (row.likes or 0) * 0.3
+                        + (row.comments or 0) * 0.2
+                        + (row.engagement_rate or 0) * 0.2
                     )
 
-                    training_data.append({
-                        'caption': row.ai_caption,
-                        'performance_score': performance_score
-                    })
+                    training_data.append(
+                        {
+                            "caption": row.ai_caption,
+                            "performance_score": performance_score,
+                        }
+                    )
 
             return training_data
 
@@ -229,9 +263,14 @@ class ModelTrainer:
         """
         try:
             if self.advanced_models.engagement_model:
-                joblib.dump(self.advanced_models.engagement_model, f"{self.model_dir}/engagement_model.pkl")
+                joblib.dump(
+                    self.advanced_models.engagement_model,
+                    f"{self.model_dir}/engagement_model.pkl",
+                )
             if self.advanced_models.view_model:
-                joblib.dump(self.advanced_models.view_model, f"{self.model_dir}/view_model.pkl")
+                joblib.dump(
+                    self.advanced_models.view_model, f"{self.model_dir}/view_model.pkl"
+                )
             logger.info("Models saved successfully")
         except Exception as e:
             logger.error(f"Failed to save models: {e}")
@@ -242,12 +281,16 @@ class ModelTrainer:
         """
         try:
             if self.advanced_models.caption_model:
-                self.advanced_models.caption_model.save_pretrained(f"{self.model_dir}/caption_model")
+                self.advanced_models.caption_model.save_pretrained(
+                    f"{self.model_dir}/caption_model"
+                )
             logger.info("Caption model saved successfully")
         except Exception as e:
             logger.error(f"Failed to save caption model: {e}")
 
-    async def save_model_metrics(self, model_name, model_version, metrics, training_samples, feature_importance):
+    async def save_model_metrics(
+        self, model_name, model_version, metrics, training_samples, feature_importance
+    ):
         """
         Save model performance metrics to database.
         """
@@ -259,7 +302,7 @@ class ModelTrainer:
                 metrics=metrics,
                 feature_importance=feature_importance,
                 training_samples=training_samples,
-                is_active=True
+                is_active=True,
             )
             session.add(model_metric)
             await session.commit()
@@ -271,7 +314,8 @@ class ModelTrainer:
         try:
             async with async_session() as session:
                 # Get recent posts without learning data
-                result = await session.execute("""
+                result = await session.execute(
+                    """
                     SELECT p.id, p.title, p.description, p.platform, p.created_at,
                            a.views, a.likes, a.comments, a.engagement_rate
                     FROM posts p
@@ -280,15 +324,17 @@ class ModelTrainer:
                     WHERE ld.id IS NULL
                     AND a.views IS NOT NULL
                     AND p.created_at >= ?
-                """, (datetime.utcnow() - timedelta(days=7),))
+                """,
+                    (datetime.utcnow() - timedelta(days=7),),
+                )
 
                 for row in result.fetchall():
                     features = self.extract_features(row)
                     actual_performance = {
-                        'views': row.views or 0,
-                        'likes': row.likes or 0,
-                        'comments': row.comments or 0,
-                        'engagement_rate': row.engagement_rate or 0
+                        "views": row.views or 0,
+                        "likes": row.likes or 0,
+                        "comments": row.comments or 0,
+                        "engagement_rate": row.engagement_rate or 0,
                     }
 
                     learning_data = LearningData(
@@ -297,7 +343,7 @@ class ModelTrainer:
                         actual_performance=actual_performance,
                         predicted_performance={},  # Will be filled by prediction
                         feedback_score=0.0,
-                        learning_insights={}
+                        learning_insights={},
                     )
                     session.add(learning_data)
 
@@ -306,6 +352,7 @@ class ModelTrainer:
 
         except Exception as e:
             logger.error(f"Failed to update learning data: {e}")
+
 
 @celery_app.task
 def train_all_models():
@@ -327,7 +374,7 @@ def train_all_models():
         return {
             "engagement_training": engagement_success,
             "caption_training": caption_success,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
     # Run async training
@@ -337,6 +384,7 @@ def train_all_models():
     loop.close()
 
     return result
+
 
 @celery_app.task
 def train_engagement_model():
@@ -354,6 +402,7 @@ def train_engagement_model():
     loop.close()
 
     return result
+
 
 @celery_app.task
 def update_learning_feedback():

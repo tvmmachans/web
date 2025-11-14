@@ -10,28 +10,34 @@ SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
 CLIENT_SECRETS_FILE = os.getenv("YOUTUBE_CLIENT_SECRETS", "client_secrets.json")
 TOKEN_PICKLE = "token.pickle"
 
+
 def get_authenticated_service():
     """
     Authenticate with YouTube API.
     """
     creds = None
     if os.path.exists(TOKEN_PICKLE):
-        with open(TOKEN_PICKLE, 'rb') as token:
+        with open(TOKEN_PICKLE, "rb") as token:
             creds = pickle.load(token)
 
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
+            flow = InstalledAppFlow.from_client_secrets_file(
+                CLIENT_SECRETS_FILE, SCOPES
+            )
             creds = flow.run_local_server(port=0)
 
-        with open(TOKEN_PICKLE, 'wb') as token:
+        with open(TOKEN_PICKLE, "wb") as token:
             pickle.dump(creds, token)
 
     return googleapiclient.discovery.build("youtube", "v3", credentials=creds)
 
-async def upload_to_youtube(video_path: str, title: str, description: str, tags: list = None) -> str:
+
+async def upload_to_youtube(
+    video_path: str, title: str, description: str, tags: list = None
+) -> str:
     """
     Upload video to YouTube.
     Returns video ID.
@@ -45,13 +51,13 @@ async def upload_to_youtube(video_path: str, title: str, description: str, tags:
                 "title": title,
                 "description": description,
                 "tags": tags or [],
-                "categoryId": "22"  # People & Blogs
+                "categoryId": "22",  # People & Blogs
             },
-            "status": {
-                "privacyStatus": "private"  # Change to public when ready
-            }
+            "status": {"privacyStatus": "private"},  # Change to public when ready
         },
-        media_body=googleapiclient.http.MediaFileUpload(video_path, chunksize=-1, resumable=True)
+        media_body=googleapiclient.http.MediaFileUpload(
+            video_path, chunksize=-1, resumable=True
+        ),
     )
 
     response = None

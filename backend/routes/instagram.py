@@ -9,18 +9,20 @@ from datetime import datetime
 
 router = APIRouter()
 
+
 class InstagramUploadRequest(BaseModel):
     post_id: int
     caption: str
+
 
 class InstagramUploadResponse(BaseModel):
     post_id: str
     media_url: str
 
+
 @router.post("/upload", response_model=InstagramUploadResponse)
 async def upload_reel_to_instagram(
-    request: InstagramUploadRequest,
-    db: AsyncSession = Depends(get_db)
+    request: InstagramUploadRequest, db: AsyncSession = Depends(get_db)
 ):
     """
     Upload video as Reel to Instagram.
@@ -33,8 +35,7 @@ async def upload_reel_to_instagram(
 
         # Upload to Instagram
         result = await upload_to_instagram(
-            video_path=post.video_url,
-            caption=request.caption
+            video_path=post.video_url, caption=request.caption
         )
 
         # Update post status
@@ -43,21 +44,18 @@ async def upload_reel_to_instagram(
 
         # Create analytics entry
         analytics = Analytics(
-            post_id=post.id,
-            platform="instagram",
-            views=0,
-            likes=0,
-            comments=0
+            post_id=post.id, platform="instagram", views=0, likes=0, comments=0
         )
         db.add(analytics)
         await db.commit()
 
         return InstagramUploadResponse(
             post_id=result.get("id"),
-            media_url=f"https://www.instagram.com/p/{result.get('id')}/"
+            media_url=f"https://www.instagram.com/p/{result.get('id')}/",
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get("/analytics/{post_id}")
 async def get_instagram_post_analytics(post_id: str):

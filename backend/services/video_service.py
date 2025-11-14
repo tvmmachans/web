@@ -12,22 +12,25 @@ AWS_SECRET_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 
 s3_client = boto3.client(
-    's3',
+    "s3",
     aws_access_key_id=AWS_ACCESS_KEY,
     aws_secret_access_key=AWS_SECRET_KEY,
-    region_name=AWS_REGION
+    region_name=AWS_REGION,
 )
+
 
 async def upload_video_service(file: UploadFile) -> dict:
     """
     Upload video to S3, extract metadata, generate thumbnail.
     Returns dict with video_url, thumbnail_url, duration.
     """
-    if not file.filename.lower().endswith(('.mp4', '.avi', '.mov', '.mkv')):
+    if not file.filename.lower().endswith((".mp4", ".avi", ".mov", ".mkv")):
         raise HTTPException(status_code=400, detail="Unsupported file format")
 
     # Save file temporarily
-    with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as temp_file:
+    with tempfile.NamedTemporaryFile(
+        delete=False, suffix=os.path.splitext(file.filename)[1]
+    ) as temp_file:
         temp_file.write(await file.read())
         temp_path = temp_file.name
 
@@ -48,13 +51,14 @@ async def upload_video_service(file: UploadFile) -> dict:
         return {
             "video_url": video_url,
             "thumbnail_url": thumbnail_url,
-            "duration": duration
+            "duration": duration,
         }
     finally:
         # Clean up temp files
         os.unlink(temp_path)
-        if 'thumbnail_path' in locals():
+        if "thumbnail_path" in locals():
             os.unlink(thumbnail_path)
+
 
 def extract_video_metadata(video_path: str) -> Tuple[float, str]:
     """
@@ -72,6 +76,7 @@ def extract_video_metadata(video_path: str) -> Tuple[float, str]:
     clip.close()
     return duration, thumbnail_path
 
+
 def generate_signed_url(bucket: str, key: str, expiration: int = 3600) -> str:
     """
     Generate a signed URL for S3 object access.
@@ -79,9 +84,7 @@ def generate_signed_url(bucket: str, key: str, expiration: int = 3600) -> str:
     """
     try:
         url = s3_client.generate_presigned_url(
-            'get_object',
-            Params={'Bucket': bucket, 'Key': key},
-            ExpiresIn=expiration
+            "get_object", Params={"Bucket": bucket, "Key": key}, ExpiresIn=expiration
         )
         return url
     except Exception as e:

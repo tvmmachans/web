@@ -24,7 +24,9 @@ MAX_COMMENTS_PER_POST = int(os.getenv("MAX_COMMENTS_PER_POST", "5"))
 MALAYALAM_LANGUAGE_CODE = "ml"
 
 # Report Generation Settings
-REPORT_GENERATION_DAY = os.getenv("REPORT_GENERATION_DAY", "monday")  # monday, tuesday, etc.
+REPORT_GENERATION_DAY = os.getenv(
+    "REPORT_GENERATION_DAY", "monday"
+)  # monday, tuesday, etc.
 REPORT_GENERATION_HOUR = int(os.getenv("REPORT_GENERATION_HOUR", "9"))  # 9 AM
 
 # Notification Settings
@@ -34,7 +36,9 @@ EMAIL_RECIPIENT = os.getenv("EMAIL_RECIPIENT")
 WHATSAPP_NUMBER = os.getenv("WHATSAPP_NUMBER")
 
 # Database Settings (reuse from backend)
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://user:password@localhost/social_media_manager")
+DATABASE_URL = os.getenv(
+    "DATABASE_URL", "postgresql+asyncpg://user:password@localhost/social_media_manager"
+)
 
 # Backend API Settings (for agent-backend communication)
 BACKEND_API_URL = os.getenv("BACKEND_API_URL", "http://localhost:8000")
@@ -59,7 +63,9 @@ MAX_CONCURRENT_TASKS = int(os.getenv("MAX_CONCURRENT_TASKS", "3"))
 TIMEOUT_SECONDS = int(os.getenv("TIMEOUT_SECONDS", "300"))
 
 # Analytics Settings
-MIN_ENGAGEMENT_RATE_THRESHOLD = float(os.getenv("MIN_ENGAGEMENT_RATE_THRESHOLD", "0.02"))
+MIN_ENGAGEMENT_RATE_THRESHOLD = float(
+    os.getenv("MIN_ENGAGEMENT_RATE_THRESHOLD", "0.02")
+)
 ANALYTICS_RETENTION_DAYS = int(os.getenv("ANALYTICS_RETENTION_DAYS", "90"))
 
 # Best posting times (can be learned from analytics)
@@ -67,12 +73,28 @@ DEFAULT_BEST_POSTING_HOURS = [9, 12, 18, 20]  # 9 AM, 12 PM, 6 PM, 8 PM
 
 # Content categories for AI decisions
 CONTENT_CATEGORIES = [
-    "educational", "entertainment", "lifestyle", "technology",
-    "food", "travel", "comedy", "music", "sports", "news"
+    "educational",
+    "entertainment",
+    "lifestyle",
+    "technology",
+    "food",
+    "travel",
+    "comedy",
+    "music",
+    "sports",
+    "news",
 ]
 
 # Malayalam content keywords for better categorization
 MALAYALAM_KEYWORDS = [
-    "മലയാളം", "കേരളം", "കോഴിക്കോട്", "തിരുവനന്തപുരം", "എറണാകുളം",
-    "കോമഡി", "സിനിമ", "ഗാനം", "നൃത്തം", "സംഗീതം"
+    "മലയാളം",
+    "കേരളം",
+    "കോഴിക്കോട്",
+    "തിരുവനന്തപുരം",
+    "എറണാകുളം",
+    "കോമഡി",
+    "സിനിമ",
+    "ഗാനം",
+    "നൃത്തം",
+    "സംഗീതം",
 ]

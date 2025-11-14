@@ -11,6 +11,7 @@ import tempfile
 
 router = APIRouter()
 
+
 class YouTubeUploadRequest(BaseModel):
     post_id: int
     title: str
@@ -18,14 +19,15 @@ class YouTubeUploadRequest(BaseModel):
     tags: Optional[List[str]] = None
     privacy_status: Optional[str] = "private"
 
+
 class YouTubeUploadResponse(BaseModel):
     video_id: str
     video_url: str
 
+
 @router.post("/upload", response_model=YouTubeUploadResponse)
 async def upload_video_to_youtube(
-    request: YouTubeUploadRequest,
-    db: AsyncSession = Depends(get_db)
+    request: YouTubeUploadRequest, db: AsyncSession = Depends(get_db)
 ):
     """
     Upload video directly to YouTube.
@@ -38,6 +40,7 @@ async def upload_video_to_youtube(
 
         # Download video from S3 temporarily
         import requests
+
         response = requests.get(post.video_url)
         if response.status_code != 200:
             raise HTTPException(status_code=500, detail="Failed to download video")
@@ -52,7 +55,7 @@ async def upload_video_to_youtube(
                 video_path=temp_path,
                 title=request.title,
                 description=request.description,
-                tags=request.tags
+                tags=request.tags,
             )
 
             # Update post status
@@ -61,11 +64,7 @@ async def upload_video_to_youtube(
 
             # Create analytics entry
             analytics = Analytics(
-                post_id=post.id,
-                platform="youtube",
-                views=0,
-                likes=0,
-                comments=0
+                post_id=post.id, platform="youtube", views=0, likes=0, comments=0
             )
             db.add(analytics)
             await db.commit()
@@ -77,6 +76,7 @@ async def upload_video_to_youtube(
             os.unlink(temp_path)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get("/analytics/{video_id}")
 async def get_youtube_analytics(video_id: str):
@@ -91,7 +91,7 @@ async def get_youtube_analytics(video_id: str):
             "views": 12500,
             "likes": 890,
             "comments": 230,
-            "subscribers_gained": 45
+            "subscribers_gained": 45,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

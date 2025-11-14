@@ -64,6 +64,7 @@ app.include_router(generate_router, prefix="/generate", tags=["Generate"])
 app.include_router(youtube_router, prefix="/youtube", tags=["YouTube"])
 app.include_router(instagram_router, prefix="/instagram", tags=["Instagram"])
 
+
 @app.on_event("startup")
 async def on_startup():
     global orchestrator_integration
@@ -75,6 +76,7 @@ async def on_startup():
     orchestrator_integration = OrchestratorEventIntegration()
     await orchestrator_integration.start()
 
+
 @app.on_event("shutdown")
 async def on_shutdown():
     scheduler.shutdown_scheduler()
@@ -83,14 +85,17 @@ async def on_shutdown():
     if orchestrator_integration:
         await orchestrator_integration.stop()
 
+
 @app.get("/health")
 async def health():
     """Simple health check endpoint for Render and monitoring"""
     return {"status": "ok"}
 
+
 @app.get("/health/live")
 async def health_live():
     return {"status": "alive"}
+
 
 @app.get("/health/ready")
 async def health_ready():
@@ -99,6 +104,8 @@ async def health_ready():
 
     # Add orchestrator integration health
     if orchestrator_integration:
-        health_status["orchestrator_integration"] = await orchestrator_integration.health_check()
+        health_status["orchestrator_integration"] = (
+            await orchestrator_integration.health_check()
+        )
 
     return health_status
