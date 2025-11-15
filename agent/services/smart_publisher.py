@@ -43,7 +43,9 @@ class PlatformManager:
             # Note: This is simplified - real implementation needs OAuth flow
             async with httpx.AsyncClient(timeout=300) as client:
                 # First, upload video file
-                upload_response = await self._upload_video_file(video_url, title, description)
+                upload_response = await self._upload_video_file(
+                    video_url, title, description
+                )
 
                 if upload_response.get("video_id"):
                     # Set thumbnail
@@ -63,7 +65,9 @@ class PlatformManager:
                         "video_id": upload_response["video_id"],
                         "url": f"https://www.youtube.com/watch?v={upload_response['video_id']}",
                         "status": "published" if not scheduled_time else "scheduled",
-                        "scheduled_time": scheduled_time.isoformat() if scheduled_time else None,
+                        "scheduled_time": (
+                            scheduled_time.isoformat() if scheduled_time else None
+                        ),
                     }
 
         except Exception as e:
@@ -355,9 +359,7 @@ Return as JSON array: ["hashtag1", "hashtag2", ...]"""
                 content.get("category", "general"), platform
             )
 
-    def _generate_fallback_hashtags(
-        self, category: str, platform: str
-    ) -> List[str]:
+    def _generate_fallback_hashtags(self, category: str, platform: str) -> List[str]:
         """Generate fallback hashtags."""
         base_tags = ["malayalam", "kerala", "trending", "shorts", "reels"]
         category_tags = {
@@ -442,4 +444,3 @@ class SmartPublisher:
             "publish_results": results,
             "published_at": datetime.utcnow().isoformat(),
         }
-

@@ -46,7 +46,9 @@ class PlatformOrchestrator:
 
             return {
                 "posted_platforms": [
-                    p for p, r in posting_results.items() if r.get("status") == "published"
+                    p
+                    for p, r in posting_results.items()
+                    if r.get("status") == "published"
                 ],
                 "failed_platforms": [
                     p for p, r in posting_results.items() if r.get("status") == "failed"
@@ -94,7 +96,7 @@ class PlatformOrchestrator:
             title = optimized_content["title"]
             max_length = platform_specs.get("title_length", 100)
             if len(title) > max_length:
-                optimized_content["title"] = title[:max_length - 3] + "..."
+                optimized_content["title"] = title[: max_length - 3] + "..."
 
         return {
             "original_content": content,
@@ -120,7 +122,9 @@ class PlatformOrchestrator:
                 promotion_results[platform] = {
                     "promotion": promotion,
                     "result": result,
-                    "status": "posted" if result.get("status") == "published" else "failed",
+                    "status": (
+                        "posted" if result.get("status") == "published" else "failed"
+                    ),
                 }
             except Exception as e:
                 logger.error(f"Cross-promotion failed for {platform}: {e}")
@@ -169,9 +173,7 @@ class CommentManagementAI:
         for comment in comments:
             try:
                 # Generate response
-                response = await self._generate_comment_response(
-                    comment, post_context
-                )
+                response = await self._generate_comment_response(comment, post_context)
 
                 responses.append(
                     {
@@ -227,4 +229,3 @@ Requirements:
             return "negative"
         else:
             return "neutral"
-

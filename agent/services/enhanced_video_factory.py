@@ -30,7 +30,8 @@ class MultiFormatCreator:
             try:
                 format_script = self._adapt_script_for_format(script, format_type)
                 video_result = await self.video_factory.create_complete_video(
-                    format_script, output_filename=f"video_{format_type}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.mp4"
+                    format_script,
+                    output_filename=f"video_{format_type}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.mp4",
                 )
                 results[format_type] = video_result
             except Exception as e:
@@ -83,9 +84,7 @@ class AutoEditingPipeline:
             video_path = await self._download_video(video_url)
 
             # Apply enhancements
-            edited_path = await self._apply_enhancements(
-                video_path, style, transitions
-            )
+            edited_path = await self._apply_enhancements(video_path, style, transitions)
 
             # Upload edited video
             edited_url = await self._upload_video(edited_path)
@@ -93,7 +92,11 @@ class AutoEditingPipeline:
             return {
                 "original_url": video_url,
                 "edited_url": edited_url,
-                "enhancements_applied": ["color_correction", "audio_normalization", "transitions"],
+                "enhancements_applied": [
+                    "color_correction",
+                    "audio_normalization",
+                    "transitions",
+                ],
                 "style": style,
                 "status": "completed",
             }
@@ -265,7 +268,9 @@ class BatchContentCreator:
                         }
                     )
             except Exception as e:
-                logger.error(f"Batch creation failed for trend {trend.get('title')}: {e}")
+                logger.error(
+                    f"Batch creation failed for trend {trend.get('title')}: {e}"
+                )
                 results.append(
                     {
                         "trend": trend.get("title"),
@@ -282,4 +287,3 @@ class BatchContentCreator:
             "results": results,
             "created_at": datetime.utcnow().isoformat(),
         }
-

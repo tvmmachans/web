@@ -9,11 +9,15 @@ from typing import Optional, Dict, Any, List
 
 import sys
 import os
+
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "agent"))
 
 from agent.services.ai_content_brain import AIContentBrain
 from agent.services.ai_video_factory import AIVideoFactory
-from agent.services.enhanced_video_factory import MultiFormatCreator, BatchContentCreator
+from agent.services.enhanced_video_factory import (
+    MultiFormatCreator,
+    BatchContentCreator,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -41,7 +45,9 @@ class BatchCreateRequest(BaseModel):
 
 
 @router.post("/generate-video")
-async def generate_video(request: GenerateVideoRequest, background_tasks: BackgroundTasks):
+async def generate_video(
+    request: GenerateVideoRequest, background_tasks: BackgroundTasks
+):
     """Generate complete video from trend or script."""
     try:
         if request.script:
@@ -49,13 +55,21 @@ async def generate_video(request: GenerateVideoRequest, background_tasks: Backgr
             result = await video_factory.create_complete_video(request.script)
         elif request.trend_data:
             # Generate from trend
-            content_result = await content_brain.generate_content_for_trend(request.trend_data)
+            content_result = await content_brain.generate_content_for_trend(
+                request.trend_data
+            )
             if content_result.get("script"):
-                result = await video_factory.create_complete_video(content_result.get("script"))
+                result = await video_factory.create_complete_video(
+                    content_result.get("script")
+                )
             else:
-                raise HTTPException(status_code=400, detail="Failed to generate script from trend")
+                raise HTTPException(
+                    status_code=400, detail="Failed to generate script from trend"
+                )
         else:
-            raise HTTPException(status_code=400, detail="Either script or trend_data required")
+            raise HTTPException(
+                status_code=400, detail="Either script or trend_data required"
+            )
 
         return {
             "status": "success",
@@ -87,9 +101,9 @@ async def batch_create(request: BatchCreateRequest, background_tasks: Background
     try:
         # Fetch trends (would query database)
         trends = []  # Placeholder - would fetch from DB
-        
+
         result = await batch_creator.create_batch(trends, request.batch_size)
-        
+
         return {
             "status": "success",
             "batch": result,
@@ -108,4 +122,3 @@ async def get_generated_content(content_id: str):
         "status": "generated",
         "message": "Content retrieval not yet implemented",
     }
-

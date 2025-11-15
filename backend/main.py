@@ -69,7 +69,9 @@ app.include_router(youtube_router, prefix="/youtube", tags=["YouTube"])
 app.include_router(instagram_router, prefix="/instagram", tags=["Instagram"])
 app.include_router(automation_router, prefix="/agent/automation", tags=["Automation"])
 app.include_router(ai_generation_router, prefix="/ai", tags=["AI Generation"])
-app.include_router(advanced_features_router, prefix="/advanced", tags=["Advanced Features"])
+app.include_router(
+    advanced_features_router, prefix="/advanced", tags=["Advanced Features"]
+)
 
 
 @app.on_event("startup")

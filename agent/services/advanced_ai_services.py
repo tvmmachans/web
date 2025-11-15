@@ -29,7 +29,9 @@ class CompetitorAnalyzer:
         """Analyze a specific competitor's content."""
         try:
             # Fetch competitor content
-            content_data = await self._fetch_competitor_content(competitor_url, platform)
+            content_data = await self._fetch_competitor_content(
+                competitor_url, platform
+            )
 
             # Analyze performance
             performance_analysis = await self._analyze_performance(content_data)
@@ -212,7 +214,10 @@ Format as JSON with keys: strategy, learnings, differentiators, recommendations"
             "strategy": "Analyze successful patterns",
             "learnings": elements,
             "differentiators": [],
-            "recommendations": ["Study competitor content", "Adapt successful elements"],
+            "recommendations": [
+                "Study competitor content",
+                "Adapt successful elements",
+            ],
         }
 
     def _extract_learnings(self, insights: Dict[str, Any]) -> str:
@@ -347,9 +352,7 @@ class ContentRepurposingEngine:
             )
 
             # Optimize for target platform
-            optimized = await self._optimize_for_platform(
-                repurposed, target_platform
-            )
+            optimized = await self._optimize_for_platform(repurposed, target_platform)
 
             return {
                 "source_content_id": source_content.get("id"),
@@ -364,9 +367,7 @@ class ContentRepurposingEngine:
             logger.error(f"Content repurposing failed: {e}")
             return {"error": str(e)}
 
-    def _analyze_source_content(
-        self, content: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _analyze_source_content(self, content: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze source content structure."""
         return {
             "duration": content.get("duration", 0),
@@ -500,17 +501,15 @@ class AudienceBehaviorAnalyzer:
             logger.error(f"Audience behavior analysis failed: {e}")
             return {"error": str(e)}
 
-    def _extract_patterns(
-        self, analytics_data: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    def _extract_patterns(self, analytics_data: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Extract behavior patterns."""
         if not analytics_data:
             return {}
 
         # Calculate averages
-        avg_engagement = sum(
-            a.get("engagement_rate", 0) for a in analytics_data
-        ) / len(analytics_data)
+        avg_engagement = sum(a.get("engagement_rate", 0) for a in analytics_data) / len(
+            analytics_data
+        )
 
         # Best performing times
         best_times = {}
@@ -520,9 +519,11 @@ class AudienceBehaviorAnalyzer:
                 best_times[hour] = []
             best_times[hour].append(data.get("engagement_rate", 0))
 
-        best_hour = max(
-            best_times.items(), key=lambda x: sum(x[1]) / len(x[1])
-        )[0] if best_times else 12
+        best_hour = (
+            max(best_times.items(), key=lambda x: sum(x[1]) / len(x[1]))[0]
+            if best_times
+            else 12
+        )
 
         return {
             "avg_engagement": avg_engagement,
@@ -567,4 +568,3 @@ class AudienceBehaviorAnalyzer:
                 recommendations.append("Continue current content strategy")
 
         return recommendations
-

@@ -45,8 +45,12 @@ class SpeechRecognitionService:
         google_creds_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
         if google_creds_path and os.path.exists(google_creds_path):
             try:
-                credentials = service_account.Credentials.from_service_account_file(google_creds_path)
-                self.providers[STTProvider.GOOGLE] = speech.SpeechClient(credentials=credentials)
+                credentials = service_account.Credentials.from_service_account_file(
+                    google_creds_path
+                )
+                self.providers[STTProvider.GOOGLE] = speech.SpeechClient(
+                    credentials=credentials
+                )
                 logger.info("Google Speech-to-Text initialized")
             except Exception as e:
                 logger.warning(f"Failed to initialize Google Speech: {e}")
@@ -56,7 +60,9 @@ class SpeechRecognitionService:
         azure_region = os.getenv("AZURE_SPEECH_REGION", "eastus")
         if azure_key:
             try:
-                speech_config = speechsdk.SpeechConfig(subscription=azure_key, region=azure_region)
+                speech_config = speechsdk.SpeechConfig(
+                    subscription=azure_key, region=azure_region
+                )
                 self.providers[STTProvider.AZURE] = speech_config
                 logger.info("Azure Speech Services initialized")
             except Exception as e:
@@ -83,7 +89,7 @@ class SpeechRecognitionService:
         audio_data: bytes,
         language: str = "ml-IN",  # Malayalam (India)
         providers: Optional[List[STTProvider]] = None,
-        timeout: int = 30
+        timeout: int = 30,
     ) -> Dict[str, Any]:
         """
         Transcribe audio using available providers with fallbacks.
@@ -129,15 +135,11 @@ class SpeechRecognitionService:
             "provider": "none",
             "error": "All speech recognition providers failed",
             "errors": errors,
-            "available_providers": list(self.providers.keys())
+            "available_providers": list(self.providers.keys()),
         }
 
     async def _transcribe_with_provider(
-        self,
-        provider: STTProvider,
-        audio_data: bytes,
-        language: str,
-        timeout: int
+        self, provider: STTProvider, audio_data: bytes, language: str, timeout: int
     ) -> Dict[str, Any]:
         """Transcribe using specific provider."""
         if provider == STTProvider.GOOGLE:
@@ -147,7 +149,9 @@ class SpeechRecognitionService:
         elif provider == STTProvider.VOSK:
             return await self._vosk_transcribe(audio_data, language, timeout)
         elif provider == STTProvider.SPEECH_RECOGNITION:
-            return await self._speech_recognition_transcribe(audio_data, language, timeout)
+            return await self._speech_recognition_transcribe(
+                audio_data, language, timeout
+            )
         else:
             raise ValueError(f"Unsupported provider: {provider}")
 
@@ -184,7 +188,12 @@ class SpeechRecognitionService:
                 "segments": self._extract_segments_google(result),
             }
 
-        return {"text": "", "confidence": 0.0, "language": language, "provider": "google"}
+        return {
+            "text": "",
+            "confidence": 0.0,
+            "language": language,
+            "provider": "google",
+        }
 
     async def _azure_transcribe(
         self, audio_data: bytes, language: str, timeout: int
@@ -219,7 +228,12 @@ class SpeechRecognitionService:
                 "provider": "azure",
             }
 
-        return {"text": "", "confidence": 0.0, "language": language, "provider": "azure"}
+        return {
+            "text": "",
+            "confidence": 0.0,
+            "language": language,
+            "provider": "azure",
+        }
 
     async def _vosk_transcribe(
         self, audio_data: bytes, language: str, timeout: int
@@ -235,7 +249,7 @@ class SpeechRecognitionService:
         chunk_size = 4000
 
         for i in range(0, len(audio_data), chunk_size):
-            chunk = audio_data[i:i + chunk_size]
+            chunk = audio_data[i : i + chunk_size]
             if rec.AcceptWaveform(chunk):
                 result = rec.Result()
                 results.append(result)
@@ -247,6 +261,7 @@ class SpeechRecognitionService:
         full_text = ""
         for result in results:
             import json
+
             data = json.loads(result)
             full_text += data.get("text", "")
 
@@ -282,7 +297,12 @@ class SpeechRecognitionService:
                 "provider": "speech_recognition",
             }
         except sr.UnknownValueError:
-            return {"text": "", "confidence": 0.0, "language": language, "provider": "speech_recognition"}
+            return {
+                "text": "",
+                "confidence": 0.0,
+                "language": language,
+                "provider": "speech_recognition",
+            }
         except sr.RequestError as e:
             raise Exception(f"Speech Recognition API error: {e}")
 
@@ -291,11 +311,13 @@ class SpeechRecognitionService:
         segments = []
         if result.alternatives:
             for word in result.alternatives[0].words:
-                segments.append({
-                    "word": word.word,
-                    "start_time": word.start_time.total_seconds(),
-                    "end_time": word.end_time.total_seconds(),
-                })
+                segments.append(
+                    {
+                        "word": word.word,
+                        "start_time": word.start_time.total_seconds(),
+                        "end_time": word.end_time.total_seconds(),
+                    }
+                )
         return segments
 
     async def get_supported_languages(self) -> Dict[str, List[str]]:

@@ -28,7 +28,9 @@ class TrendDetector:
         self.instagram_token = os.getenv("INSTAGRAM_ACCESS_TOKEN")
         self.twitter_bearer = os.getenv("TWITTER_BEARER_TOKEN")
 
-    async def scan_trends(self, platforms: List[str] = ["youtube", "instagram"]) -> List[Dict[str, Any]]:
+    async def scan_trends(
+        self, platforms: List[str] = ["youtube", "instagram"]
+    ) -> List[Dict[str, Any]]:
         """Scan multiple platforms for trending topics."""
         all_trends = []
 
@@ -44,9 +46,7 @@ class TrendDetector:
                     continue
 
                 # Filter for Malayalam content
-                malayalam_trends = [
-                    t for t in trends if self._is_malayalam_content(t)
-                ]
+                malayalam_trends = [t for t in trends if self._is_malayalam_content(t)]
                 all_trends.extend(malayalam_trends)
 
             except Exception as e:
@@ -183,7 +183,9 @@ class TrendDetector:
 
         return "general"
 
-    def _rank_trends_by_viral_potential(self, trends: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _rank_trends_by_viral_potential(
+        self, trends: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """Rank trends by viral potential score."""
         for trend in trends:
             score = 0.0
@@ -203,7 +205,9 @@ class TrendDetector:
                     pub_date = datetime.fromisoformat(
                         trend["published_at"].replace("Z", "+00:00")
                     )
-                    hours_old = (datetime.utcnow() - pub_date.replace(tzinfo=None)).total_seconds() / 3600
+                    hours_old = (
+                        datetime.utcnow() - pub_date.replace(tzinfo=None)
+                    ).total_seconds() / 3600
                     recency_score = max(0, 1 - (hours_old / 48))  # Decay over 48 hours
                     score += recency_score * 0.3
                 except:
@@ -300,9 +304,15 @@ Format as JSON array with keys: title, hook, angle, audience, viral_reason"""
                 ideas.append(current_idea)
                 current_idea = {}
 
-        return ideas if ideas else [{"title": "ട്രെൻഡിങ്ങ് വിഷയം", "hook": "വിസ്മയം!", "angle": "പ്രചാരണം"}]
+        return (
+            ideas
+            if ideas
+            else [{"title": "ട്രെൻഡിങ്ങ് വിഷയം", "hook": "വിസ്മയം!", "angle": "പ്രചാരണം"}]
+        )
 
-    def _generate_fallback_ideas(self, trend: Dict[str, Any], count: int) -> List[Dict[str, Any]]:
+    def _generate_fallback_ideas(
+        self, trend: Dict[str, Any], count: int
+    ) -> List[Dict[str, Any]]:
         """Generate fallback ideas when AI fails."""
         title = trend.get("title", "ട്രെൻഡിങ്ങ് വിഷയം")
         return [
@@ -372,7 +382,9 @@ Format as JSON:
                 if json_match:
                     script = json.loads(json_match.group())
                 else:
-                    script = self._generate_fallback_script(content_idea, duration_seconds)
+                    script = self._generate_fallback_script(
+                        content_idea, duration_seconds
+                    )
             except:
                 script = self._generate_fallback_script(content_idea, duration_seconds)
 
@@ -462,13 +474,17 @@ class ContentPlanner:
             }
 
         # Generate ideas
-        ideas = await self.idea_generator.generate_content_ideas(selected_trend, count=3)
+        ideas = await self.idea_generator.generate_content_ideas(
+            selected_trend, count=3
+        )
         best_idea = ideas[0] if ideas else None
 
         # Write script
         script = None
         if best_idea:
-            script = await self.script_writer.write_script(best_idea, duration_seconds=60)
+            script = await self.script_writer.write_script(
+                best_idea, duration_seconds=60
+            )
 
         return {
             "date": date.date().isoformat(),
@@ -520,9 +536,7 @@ class AIContentBrain:
             "generated_at": datetime.utcnow().isoformat(),
         }
 
-    async def generate_content_for_trend(
-        self, trend: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def generate_content_for_trend(self, trend: Dict[str, Any]) -> Dict[str, Any]:
         """Generate complete content package for a trend."""
         # Generate ideas
         ideas = await self.idea_generator.generate_content_ideas(trend, count=3)
@@ -530,7 +544,9 @@ class AIContentBrain:
         # Write script for best idea
         script = None
         if ideas:
-            script = await self.script_writer.write_script(ideas[0], duration_seconds=60)
+            script = await self.script_writer.write_script(
+                ideas[0], duration_seconds=60
+            )
 
         return {
             "trend": trend,
@@ -538,4 +554,3 @@ class AIContentBrain:
             "script": script,
             "generated_at": datetime.utcnow().isoformat(),
         }
-

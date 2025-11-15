@@ -26,9 +26,7 @@ class WorkflowManager:
         self.publisher = SmartPublisher()
         self.optimizer = PerformanceOptimizer()
 
-    async def execute_full_automation_cycle(
-        self, days: int = 7
-    ) -> Dict[str, Any]:
+    async def execute_full_automation_cycle(self, days: int = 7) -> Dict[str, Any]:
         """Execute complete automation cycle: Discovery → Creation → Publishing → Optimization."""
         logger.info("🚀 Starting full automation cycle...")
 
@@ -45,7 +43,9 @@ class WorkflowManager:
             results["phases"]["discovery"] = {
                 "status": "completed",
                 "trends_found": len(discovery_result.get("trends", [])),
-                "calendar_days": len(discovery_result.get("calendar", {}).get("days", [])),
+                "calendar_days": len(
+                    discovery_result.get("calendar", {}).get("days", [])
+                ),
             }
 
             # Phase 2: Video Creation
@@ -59,23 +59,33 @@ class WorkflowManager:
                         video_result = await self.video_factory.create_complete_video(
                             day_plan.get("script")
                         )
-                        creation_results.append({
-                            "date": day_plan.get("date"),
-                            "video": video_result,
-                            "status": video_result.get("status"),
-                        })
+                        creation_results.append(
+                            {
+                                "date": day_plan.get("date"),
+                                "video": video_result,
+                                "status": video_result.get("status"),
+                            }
+                        )
                     except Exception as e:
-                        logger.error(f"Video creation failed for {day_plan.get('date')}: {e}")
-                        creation_results.append({
-                            "date": day_plan.get("date"),
-                            "status": "failed",
-                            "error": str(e),
-                        })
+                        logger.error(
+                            f"Video creation failed for {day_plan.get('date')}: {e}"
+                        )
+                        creation_results.append(
+                            {
+                                "date": day_plan.get("date"),
+                                "status": "failed",
+                                "error": str(e),
+                            }
+                        )
 
             results["phases"]["creation"] = {
                 "status": "completed",
-                "videos_created": len([r for r in creation_results if r.get("status") == "completed"]),
-                "videos_failed": len([r for r in creation_results if r.get("status") == "failed"]),
+                "videos_created": len(
+                    [r for r in creation_results if r.get("status") == "completed"]
+                ),
+                "videos_failed": len(
+                    [r for r in creation_results if r.get("status") == "failed"]
+                ),
                 "results": creation_results,
             }
 
@@ -98,23 +108,31 @@ class WorkflowManager:
                             platforms=["youtube", "instagram"],
                             auto_schedule=True,
                         )
-                        publishing_results.append({
-                            "date": creation_result.get("date"),
-                            "publish_result": publish_result,
-                            "status": "published",
-                        })
+                        publishing_results.append(
+                            {
+                                "date": creation_result.get("date"),
+                                "publish_result": publish_result,
+                                "status": "published",
+                            }
+                        )
                     except Exception as e:
                         logger.error(f"Publishing failed: {e}")
-                        publishing_results.append({
-                            "date": creation_result.get("date"),
-                            "status": "failed",
-                            "error": str(e),
-                        })
+                        publishing_results.append(
+                            {
+                                "date": creation_result.get("date"),
+                                "status": "failed",
+                                "error": str(e),
+                            }
+                        )
 
             results["phases"]["publishing"] = {
                 "status": "completed",
-                "published": len([r for r in publishing_results if r.get("status") == "published"]),
-                "failed": len([r for r in publishing_results if r.get("status") == "failed"]),
+                "published": len(
+                    [r for r in publishing_results if r.get("status") == "published"]
+                ),
+                "failed": len(
+                    [r for r in publishing_results if r.get("status") == "failed"]
+                ),
                 "results": publishing_results,
             }
 
@@ -149,9 +167,13 @@ class WorkflowManager:
         for result in publishing_results:
             if result.get("status") == "published":
                 publish_result = result.get("publish_result", {})
-                for platform, platform_result in publish_result.get("publish_results", {}).items():
+                for platform, platform_result in publish_result.get(
+                    "publish_results", {}
+                ).items():
                     if platform_result.get("status") == "published":
-                        video_id = platform_result.get("video_id") or platform_result.get("media_id")
+                        video_id = platform_result.get(
+                            "video_id"
+                        ) or platform_result.get("media_id")
                         if video_id:
                             try:
                                 await self.optimizer.analytics_tracker.track_performance(
@@ -167,9 +189,7 @@ class ErrorHandler:
     def __init__(self, max_retries: int = 3):
         self.max_retries = max_retries
 
-    async def retry_operation(
-        self, operation, *args, **kwargs
-    ) -> Dict[str, Any]:
+    async def retry_operation(self, operation, *args, **kwargs) -> Dict[str, Any]:
         """Retry an operation with exponential backoff."""
         for attempt in range(self.max_retries):
             try:
@@ -179,10 +199,14 @@ class ErrorHandler:
             except Exception as e:
                 logger.warning(f"Attempt {attempt + 1} failed: {e}")
                 if attempt < self.max_retries - 1:
-                    wait_time = 2 ** attempt  # Exponential backoff
+                    wait_time = 2**attempt  # Exponential backoff
                     await asyncio.sleep(wait_time)
 
-        return {"success": False, "error": "Max retries exceeded", "attempts": self.max_retries}
+        return {
+            "success": False,
+            "error": "Max retries exceeded",
+            "attempts": self.max_retries,
+        }
 
 
 class QualityChecker:
@@ -191,9 +215,7 @@ class QualityChecker:
     def __init__(self):
         self.min_quality_score = 0.7
 
-    async def check_content_quality(
-        self, content: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def check_content_quality(self, content: Dict[str, Any]) -> Dict[str, Any]:
         """Check if content meets quality standards."""
         issues = []
         score = 1.0
@@ -280,7 +302,9 @@ class AutomationOrchestrator:
 
         try:
             # Execute full cycle
-            cycle_result = await self.workflow_manager.execute_full_automation_cycle(days)
+            cycle_result = await self.workflow_manager.execute_full_automation_cycle(
+                days
+            )
 
             # Create backup
             await self.backup_systems.create_backup(cycle_result)
@@ -318,22 +342,32 @@ class AutomationOrchestrator:
         self, trend: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Execute workflow for a single video from a trend."""
-        logger.info(f"🎯 Executing single video workflow for trend: {trend.get('title')}")
+        logger.info(
+            f"🎯 Executing single video workflow for trend: {trend.get('title')}"
+        )
 
         try:
             # Step 1: Generate content
-            content_result = await self.workflow_manager.content_brain.generate_content_for_trend(trend)
+            content_result = (
+                await self.workflow_manager.content_brain.generate_content_for_trend(
+                    trend
+                )
+            )
 
             if not content_result.get("script"):
                 return {"status": "failed", "error": "Script generation failed"}
 
             # Step 2: Create video
-            video_result = await self.workflow_manager.video_factory.create_complete_video(
-                content_result.get("script")
+            video_result = (
+                await self.workflow_manager.video_factory.create_complete_video(
+                    content_result.get("script")
+                )
             )
 
             # Step 3: Quality check
-            quality_check = await self.quality_checker.check_content_quality(video_result)
+            quality_check = await self.quality_checker.check_content_quality(
+                video_result
+            )
 
             if not quality_check.get("passed"):
                 return {
@@ -348,7 +382,9 @@ class AutomationOrchestrator:
                     "video_url": video_result.get("video_url"),
                     "thumbnail_url": video_result.get("thumbnail_url"),
                     "script": content_result.get("script"),
-                    "title": content_result.get("ideas", [{}])[0].get("title", "Auto-generated"),
+                    "title": content_result.get("ideas", [{}])[0].get(
+                        "title", "Auto-generated"
+                    ),
                     "category": trend.get("category", "general"),
                 },
                 platforms=["youtube", "instagram"],
@@ -366,4 +402,3 @@ class AutomationOrchestrator:
         except Exception as e:
             logger.error(f"Single video workflow failed: {e}")
             return {"status": "failed", "error": str(e)}
-

@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from backend.database import LearningData, async_session
+
 try:
     from openai import OpenAI
 except ImportError:
@@ -21,6 +22,7 @@ try:
 except ImportError:
     AdvancedMLModels = None
 from ai_engine.learning_manager import LearningManager
+
 try:
     from services.speech_recognition import speech_recognition_service, STTProvider
 except ImportError:
@@ -31,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-if OpenAI:
+if OpenAI and OPENAI_API_KEY:
     openai_client = OpenAI(api_key=OPENAI_API_KEY)
 else:
     openai_client = None
@@ -44,27 +46,33 @@ advanced_models = None
 try:
     # First try the original import
     from backend.models.advanced_models import AdvancedMLModels
+
     advanced_models = AdvancedMLModels()
     print("Advanced models initialized successfully")
 except ImportError:
     # If that fails, check what's available and use alternatives
     try:
         import backend.models.advanced_models as am
-        available_classes = [x for x in dir(am) if not x.startswith('_') and x[0].isupper()]
+
+        available_classes = [
+            x for x in dir(am) if not x.startswith("_") and x[0].isupper()
+        ]
         print(f"Available classes in advanced_models: {available_classes}")
-        
+
         # Try common alternative class names
-        if 'AdvancedModel' in available_classes:
+        if "AdvancedModel" in available_classes:
             from backend.models.advanced_models import AdvancedModel
+
             advanced_models = AdvancedModel()
             print("Using AdvancedModel as alternative")
-        elif 'MLModel' in available_classes:
+        elif "MLModel" in available_classes:
             from backend.models.advanced_models import MLModel
+
             advanced_models = MLModel()
             print("Using MLModel as alternative")
         else:
             print("No suitable advanced model class found")
-            
+
     except Exception as e:
         print(f"Could not find alternative advanced models: {e}")
 except Exception as e:
@@ -84,6 +92,9 @@ async def generate_caption_service(video_path: str, language: str = "ml") -> str
     Generate AI caption for video using OpenAI.
     Supports Malayalam (ml) and other languages.
     """
+    if openai_client is None:
+        return f"Default caption for {language}: Engaging content!"
+
     # Transcribe video to text
     transcription = transcribe_video(video_path, language)
 
@@ -109,11 +120,11 @@ async def generate_subtitles_service(
 
     try:
         video = mp.VideoFileClip(video_path)
-        audio_path = video_path.replace('.mp4', '_temp.wav')
+        audio_path = video_path.replace(".mp4", "_temp.wav")
         video.audio.write_audiofile(audio_path, verbose=False, logger=None)
 
         # Read audio data
-        with open(audio_path, 'rb') as f:
+        with open(audio_path, "rb") as f:
             audio_data = f.read()
 
         # Transcribe using alternative service
@@ -128,19 +139,17 @@ async def generate_subtitles_service(
         subtitles = []
         if result.get("segments"):
             for segment in result["segments"]:
-                subtitles.append({
-                    "start": segment.get("start_time", 0),
-                    "end": segment.get("end_time", 0),
-                    "text": segment.get("word", "")
-                })
+                subtitles.append(
+                    {
+                        "start": segment.get("start_time", 0),
+                        "end": segment.get("end_time", 0),
+                        "text": segment.get("word", ""),
+                    }
+                )
         else:
             # Fallback: create single subtitle from full text
             duration = video.duration if video else 10
-            subtitles = [{
-                "start": 0,
-                "end": duration,
-                "text": result.get("text", "")
-            }]
+            subtitles = [{"start": 0, "end": duration, "text": result.get("text", "")}]
 
         return subtitles
 
@@ -158,11 +167,11 @@ async def transcribe_video_async(video_path: str, language: str = "ml") -> str:
 
     try:
         video = mp.VideoFileClip(video_path)
-        audio_path = video_path.replace('.mp4', '_temp.wav')
+        audio_path = video_path.replace(".mp4", "_temp.wav")
         video.audio.write_audiofile(audio_path, verbose=False, logger=None)
 
         # Read audio data
-        with open(audio_path, 'rb') as f:
+        with open(audio_path, "rb") as f:
             audio_data = f.read()
 
         # Transcribe using alternative service

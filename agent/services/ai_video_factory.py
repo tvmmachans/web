@@ -22,8 +22,12 @@ class SceneGenerator:
 
     def __init__(self):
         self.openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        self.stable_video_api = os.getenv("STABLE_VIDEO_API_URL", "http://localhost:7860")
-        self.dalle_api_key = os.getenv("OPENAI_API_KEY")  # Fallback to DALL-E for images
+        self.stable_video_api = os.getenv(
+            "STABLE_VIDEO_API_URL", "http://localhost:7860"
+        )
+        self.dalle_api_key = os.getenv(
+            "OPENAI_API_KEY"
+        )  # Fallback to DALL-E for images
 
     async def generate_scenes(
         self, script: Dict[str, Any], style: str = "modern"
@@ -36,7 +40,9 @@ class SceneGenerator:
                 scene = await self._generate_single_scene(scene_data, style)
                 scenes.append(scene)
             except Exception as e:
-                logger.error(f"Failed to generate scene {scene_data.get('scene_number')}: {e}")
+                logger.error(
+                    f"Failed to generate scene {scene_data.get('scene_number')}: {e}"
+                )
                 # Add fallback scene
                 scenes.append(self._create_fallback_scene(scene_data))
 
@@ -50,7 +56,9 @@ class SceneGenerator:
         dialogue = scene_data.get("dialogue", "")
 
         # Create prompt for scene generation
-        prompt = f"{visual_cue}. {dialogue}. Style: {style}, high quality, vibrant colors"
+        prompt = (
+            f"{visual_cue}. {dialogue}. Style: {style}, high quality, vibrant colors"
+        )
 
         # Try Stable Video Diffusion first
         try:
@@ -229,7 +237,9 @@ class VoiceStudio:
         # Would need custom voice cloning for Malayalam
         return {}
 
-    async def _generate_with_google_tts(self, text: str, language: str) -> Dict[str, Any]:
+    async def _generate_with_google_tts(
+        self, text: str, language: str
+    ) -> Dict[str, Any]:
         """Generate using Google TTS API."""
         try:
             from gtts import gTTS
@@ -363,7 +373,9 @@ class VideoEditor:
             text = subtitle.get("text", "")
 
             srt_content.append(f"{i}\n")
-            srt_content.append(f"{self._format_time(start)} --> {self._format_time(end)}\n")
+            srt_content.append(
+                f"{self._format_time(start)} --> {self._format_time(end)}\n"
+            )
             srt_content.append(f"{text}\n\n")
 
         srt_file = tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".srt")
@@ -462,7 +474,9 @@ class SubtitleEngine:
 
         return subtitles
 
-    def _create_subtitles_from_script(self, script: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _create_subtitles_from_script(
+        self, script: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         """Create subtitles from script when audio transcription fails."""
         subtitles = []
         current_time = 0.0
@@ -582,4 +596,3 @@ class AIVideoFactory:
             "status": final_video.get("status"),
             "created_at": datetime.utcnow().isoformat(),
         }
-

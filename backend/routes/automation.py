@@ -10,6 +10,7 @@ from typing import Optional, Dict, Any
 # Import automation orchestrator
 import sys
 import os
+
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "agent"))
 
 from agent.services.automation_orchestrator import AutomationOrchestrator
@@ -74,4 +75,3 @@ async def execute_single_video_workflow(trend: Dict[str, Any]):
     except Exception as e:
         logger.error(f"Single video workflow failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-

@@ -24,9 +24,7 @@ class AnalyticsTracker:
         self.youtube_api_key = os.getenv("YOUTUBE_API_KEY")
         self.instagram_token = os.getenv("INSTAGRAM_ACCESS_TOKEN")
 
-    async def track_performance(
-        self, video_id: str, platform: str
-    ) -> Dict[str, Any]:
+    async def track_performance(self, video_id: str, platform: str) -> Dict[str, Any]:
         """Track performance metrics for a video."""
         try:
             if platform == "youtube":
@@ -64,9 +62,7 @@ class AnalyticsTracker:
                 comments = int(stats.get("commentCount", 0))
 
                 # Calculate engagement rate
-                engagement_rate = (
-                    (likes + comments * 2) / views if views > 0 else 0
-                )
+                engagement_rate = (likes + comments * 2) / views if views > 0 else 0
 
                 return {
                     "platform": "youtube",
@@ -100,9 +96,7 @@ class AnalyticsTracker:
             likes = data.get("like_count", 0)
             comments = data.get("comments_count", 0)
 
-            engagement_rate = (
-                (likes + comments * 2) / views if views > 0 else 0
-            )
+            engagement_rate = (likes + comments * 2) / views if views > 0 else 0
 
             return {
                 "platform": "instagram",
@@ -118,9 +112,7 @@ class AnalyticsTracker:
             logger.error(f"Instagram tracking failed: {e}")
             return {"error": str(e)}
 
-    async def get_historical_analytics(
-        self, days: int = 30
-    ) -> List[Dict[str, Any]]:
+    async def get_historical_analytics(self, days: int = 30) -> List[Dict[str, Any]]:
         """Get historical analytics data."""
         # This would query the database
         # For now, return placeholder
@@ -171,9 +163,7 @@ class MLLearningEngine:
             "engagement_rate": performance.get("engagement_rate", 0),
         }
 
-    def _update_weights(
-        self, features: Dict[str, Any], performance: Dict[str, Any]
-    ):
+    def _update_weights(self, features: Dict[str, Any], performance: Dict[str, Any]):
         """Update model weights based on performance."""
         # Simplified - real implementation would use gradient descent
         engagement = performance.get("engagement_rate", 0)
@@ -214,9 +204,7 @@ class MLLearningEngine:
 
         return insights
 
-    async def predict_performance(
-        self, content_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def predict_performance(self, content_data: Dict[str, Any]) -> Dict[str, Any]:
         """Predict content performance using learned model."""
         try:
             # Extract features
@@ -231,7 +219,9 @@ class MLLearningEngine:
 
             for key, value in features.items():
                 weight = self.model_weights.get(key, 0.0)
-                predicted_engagement += weight * (value if isinstance(value, (int, float)) else 1.0)
+                predicted_engagement += weight * (
+                    value if isinstance(value, (int, float)) else 1.0
+                )
 
             predicted_engagement = max(0, min(1, predicted_engagement))
 
@@ -388,11 +378,7 @@ Return as JSON array: ["title1", "title2", "title3"]"""
             variant_id = variant.get("variant_id")
             # Find performance for this variant
             variant_perf = next(
-                (
-                    p
-                    for p in performance_data
-                    if p.get("variant_id") == variant_id
-                ),
+                (p for p in performance_data if p.get("variant_id") == variant_id),
                 None,
             )
 
@@ -474,28 +460,20 @@ Format as JSON:
             logger.error(f"Improvement suggestion failed: {e}")
             return self._generate_fallback_suggestions({})
 
-    def _analyze_patterns(
-        self, analytics_data: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    def _analyze_patterns(self, analytics_data: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Analyze patterns in analytics data."""
         if not analytics_data:
             return {}
 
         # Calculate averages
-        avg_engagement = np.mean(
-            [a.get("engagement_rate", 0) for a in analytics_data]
-        )
+        avg_engagement = np.mean([a.get("engagement_rate", 0) for a in analytics_data])
         avg_views = np.mean([a.get("views", 0) for a in analytics_data])
 
         # Best performing content
-        best_content = max(
-            analytics_data, key=lambda x: x.get("engagement_rate", 0)
-        )
+        best_content = max(analytics_data, key=lambda x: x.get("engagement_rate", 0))
 
         # Worst performing content
-        worst_content = min(
-            analytics_data, key=lambda x: x.get("engagement_rate", 0)
-        )
+        worst_content = min(analytics_data, key=lambda x: x.get("engagement_rate", 0))
 
         return {
             "avg_engagement": float(avg_engagement),
@@ -557,4 +535,3 @@ class PerformanceOptimizer:
             "suggestions": suggestions,
             "optimized_at": datetime.utcnow().isoformat(),
         }
-

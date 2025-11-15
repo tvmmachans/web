@@ -10,10 +10,15 @@ from datetime import datetime
 
 import sys
 import os
+
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "agent"))
 
 from agent.services.performance_optimizer import PerformanceOptimizer
-from agent.services.advanced_ai_services import CompetitorAnalyzer, ViralTopicPredictor, ContentRepurposingEngine
+from agent.services.advanced_ai_services import (
+    CompetitorAnalyzer,
+    ViralTopicPredictor,
+    ContentRepurposingEngine,
+)
 from agent.services.platform_orchestrator import PlatformOrchestrator
 
 logger = logging.getLogger(__name__)
@@ -51,8 +56,10 @@ class BulkPublishRequest(BaseModel):
 async def predict_engagement(request: PredictEngagementRequest):
     """Predict content engagement using ML."""
     try:
-        prediction = await optimizer.ml_learning.predict_performance(request.content_data)
-        
+        prediction = await optimizer.ml_learning.predict_performance(
+            request.content_data
+        )
+
         return {
             "status": "success",
             "prediction": prediction,
@@ -68,10 +75,10 @@ async def get_content_calendar(days: int = 7):
     """Get AI-planned content calendar."""
     try:
         from agent.services.ai_content_brain import AIContentBrain
-        
+
         brain = AIContentBrain()
         result = await brain.discover_and_plan(days=days)
-        
+
         return {
             "status": "success",
             "calendar": result.get("calendar"),
@@ -88,11 +95,11 @@ async def bulk_publish(request: BulkPublishRequest):
     try:
         # Fetch content (would query database)
         content_data = {}  # Placeholder
-        
+
         result = await platform_orchestrator.simultaneous_posting(
             content_data, request.platforms
         )
-        
+
         return {
             "status": "success",
             "publish_result": result,
@@ -109,7 +116,7 @@ async def analyze_competitor(request: CompetitorAnalysisRequest):
         result = await competitor_analyzer.analyze_competitor_content(
             request.competitor_url, request.platform
         )
-        
+
         return {
             "status": "success",
             "analysis": result,
@@ -124,7 +131,7 @@ async def get_viral_predictions(days: int = 7, category: Optional[str] = None):
     """Get viral topic predictions."""
     try:
         predictions = await viral_predictor.predict_viral_topics(days, category)
-        
+
         return {
             "status": "success",
             "predictions": predictions,
@@ -144,7 +151,7 @@ async def repurpose_content(request: RepurposeContentRequest):
             request.target_platform,
             request.target_format,
         )
-        
+
         return {
             "status": "success",
             "repurposed_content": result,
@@ -171,4 +178,3 @@ async def get_realtime_analytics():
     except Exception as e:
         logger.error(f"Analytics fetch failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
