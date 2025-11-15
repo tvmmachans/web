@@ -1,9 +1,9 @@
 import os
 from datetime import datetime
 
-from sqlalchemy import JSON, Column, DateTime, Float, Integer, String, Text
+from sqlalchemy import JSON, Column, DateTime, Float, Integer, String, Text, ForeignKey
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, sessionmaker, relationship
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL", "postgresql+asyncpg://user:password@localhost/social_media_manager"
@@ -126,3 +126,15 @@ async def init_db():
 async def get_db() -> AsyncSession:
     async with async_session() as session:
         yield session
+
+
+# Import advanced models to register them
+from backend.models.advanced_models import (
+    AIGeneratedContent,
+    AutomationWorkflow,
+    ContentCalendar,
+    TrendPrediction,
+    ABTestResult,
+    CompetitorAnalysis,
+    PerformanceMetrics,
+)

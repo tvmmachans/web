@@ -139,6 +139,74 @@ export default function Home() {
           </a>
           
           <a 
+            href="/automation"
+            style={{
+              padding: '1rem',
+              background: '#8b5cf6',
+              color: 'white',
+              borderRadius: '8px',
+              textAlign: 'center',
+              fontWeight: '600',
+              transition: 'background 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#7c3aed'}
+            onMouseLeave={(e) => e.currentTarget.style.background = '#8b5cf6'}
+          >
+            🤖 Automation Dashboard
+          </a>
+          
+          <a 
+            href="/video-generator"
+            style={{
+              padding: '1rem',
+              background: '#ec4899',
+              color: 'white',
+              borderRadius: '8px',
+              textAlign: 'center',
+              fontWeight: '600',
+              transition: 'background 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#db2777'}
+            onMouseLeave={(e) => e.currentTarget.style.background = '#ec4899'}
+          >
+            🎬 AI Video Generator
+          </a>
+          
+          <a 
+            href="/content-calendar"
+            style={{
+              padding: '1rem',
+              background: '#06b6d4',
+              color: 'white',
+              borderRadius: '8px',
+              textAlign: 'center',
+              fontWeight: '600',
+              transition: 'background 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#0891b2'}
+            onMouseLeave={(e) => e.currentTarget.style.background = '#06b6d4'}
+          >
+            📅 Content Calendar
+          </a>
+          
+          <a 
+            href="/platform-manager"
+            style={{
+              padding: '1rem',
+              background: '#14b8a6',
+              color: 'white',
+              borderRadius: '8px',
+              textAlign: 'center',
+              fontWeight: '600',
+              transition: 'background 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#0d9488'}
+            onMouseLeave={(e) => e.currentTarget.style.background = '#14b8a6'}
+          >
+            📡 Platform Manager
+          </a>
+          
+          <a 
             href="/settings"
             style={{
               padding: '1rem',

@@ -1,0 +1,16 @@
+# Optional AI/ML packages - Install these separately if you need advanced AI features
+# Note: Some require Rust compiler or Visual C++ Build Tools on Windows
+
+# For PyTorch (install from pytorch.org for Windows compatibility)
+# Visit: https://pytorch.org/get-started/locally/
+# Then install: pip install torch torchvision torchaudio
+
+# After torch is installed, install these:
+transformers>=4.35.0
+openai-whisper
+numpy>=2.0.0
+scikit-learn>=1.3.2
+
+# Note: If you get build errors, use pre-built wheels:
+# pip install --only-binary :all: transformers numpy scikit-learn
+

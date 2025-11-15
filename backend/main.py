@@ -17,6 +17,9 @@ from routes.instagram import router as instagram_router
 from routes.schedule import router as schedule_router
 from routes.upload import router as upload_router
 from routes.youtube import router as youtube_router
+from routes.automation import router as automation_router
+from routes.ai_generation import router as ai_generation_router
+from routes.advanced_features import router as advanced_features_router
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -64,6 +67,9 @@ app.include_router(schedule_router, prefix="/schedule", tags=["Schedule"])
 app.include_router(generate_router, prefix="/generate", tags=["Generate"])
 app.include_router(youtube_router, prefix="/youtube", tags=["YouTube"])
 app.include_router(instagram_router, prefix="/instagram", tags=["Instagram"])
+app.include_router(automation_router, prefix="/agent/automation", tags=["Automation"])
+app.include_router(ai_generation_router, prefix="/ai", tags=["AI Generation"])
+app.include_router(advanced_features_router, prefix="/advanced", tags=["Advanced Features"])
 
 
 @app.on_event("startup")

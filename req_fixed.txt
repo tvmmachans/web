@@ -28,5 +28,3 @@ psycopg2-binary==2.9.7
 pytest==7.4.3
 pytest-cov==4.1.0
 
-# Note: Whisper should be installed separately from GitHub:
-# pip install git+https://github.com/openai/whisper.git
