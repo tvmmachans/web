@@ -13,18 +13,57 @@ import json
 import joblib
 import numpy as np
 import pandas as pd
-from transformers import pipeline, AutoTokenizer, AutoModelForSequenceClassification, AutoModelForCausalLM
-import xgboost as xgb
-from prophet import Prophet
-import torch
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
-import psutil
-import gc
+try:
+    from transformers import pipeline, AutoTokenizer, AutoModelForSequenceClassification, AutoModelForCausalLM
+except ImportError:
+    pipeline = None
+    AutoTokenizer = None
+    AutoModelForSequenceClassification = None
+    AutoModelForCausalLM = None
+try:
+    import xgboost as xgb
+except ImportError:
+    xgb = None
+try:
+    from prophet import Prophet
+except ImportError:
+    Prophet = None
+try:
+    import torch
+except ImportError:
+    torch = None
+try:
+    from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+except ImportError:
+    accuracy_score = None
+    precision_recall_fscore_support = None
+try:
+    import psutil
+except ImportError:
+    psutil = None
+try:
+    import gc
+except ImportError:
+    gc = None
 
-from backend.database import async_session, Trends, LearningData, ModelMetrics, PostingOptimization
-from backend.services.ai_service import generate_caption_service
-from orchestrator.services.ml_prediction import MLPredictionService
-from backend.voice_engine.emotion_tts import EmotionAwareTTS
+try:
+    from backend.database import async_session, Trends, LearningData, ModelMetrics, PostingOptimization
+except ImportError:
+    async_session = None
+    Trends = None
+    LearningData = None
+    ModelMetrics = None
+    PostingOptimization = None
+try:
+    from orchestrator.services.ml_prediction import MLPredictionService
+except ImportError:
+    MLPredictionService = None
+except Exception as e:
+    MLPredictionService = None
+try:
+    from backend.voice_engine.emotion_tts import EmotionAwareTTS
+except ImportError:
+    EmotionAwareTTS = None
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +73,7 @@ class LearningManager:
     """
 
     def __init__(self):
-        self.ml_service = MLPredictionService()
+        self.ml_service = MLPredictionService() if MLPredictionService else None
         self.sentiment_analyzer = None
         self.caption_model = None
         self.prophet_model = None
@@ -81,43 +120,43 @@ class LearningManager:
             logger.error(f"Failed to initialize models: {e}")
 
     def _initialize_advanced_models(self):
-        \"\"\"Initialize advanced ML models for enhanced learning.\"\"\"
+        """Initialize advanced ML models for enhanced learning."""
         try:
             # Transformer-based sentiment analysis for Malayalam
             self.transformer_sentiment_model = pipeline(
-                \"sentiment-analysis\",
-                model=\"cardiffnlp/twitter-roberta-base-sentiment-latest\",
-                tokenizer=\"cardiffnlp/twitter-roberta-base-sentiment-latest\"
+                "sentiment-analysis",
+                model="cardiffnlp/twitter-roberta-base-sentiment-latest",
+                tokenizer="cardiffnlp/twitter-roberta-base-sentiment-latest"
             )
 
             # Malayalam caption generator using GPT-2 fine-tuned
             self.malayalam_caption_generator = pipeline(
-                \"text-generation\",
-                model=\"gpt2\",
-                tokenizer=\"gpt2\",
+                "text-generation",
+                model="gpt2",
+                tokenizer="gpt2",
                 max_length=100,
                 num_return_sequences=1
             )
 
             # Voice emotion analyzer using pre-trained model
             self.voice_emotion_analyzer = pipeline(
-                \"audio-classification\",
-                model=\"ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition\"
+                "audio-classification",
+                model="ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition"
             )
 
             # Initialize model versions and performance tracking
             self.model_versions = {
-                \'sentiment\': \'1.0\',
-                \'caption_generator\': \'1.0\',
-                \'voice_emotion\': \'1.0\'
+                'sentiment': '1.0',
+                'caption_generator': '1.0',
+                'voice_emotion': '1.0'
             }
 
             self.performance_history = []
 
-            logger.info(\"Advanced models initialized successfully\")
+            logger.info("Advanced models initialized successfully")
 
         except Exception as e:
-            logger.error(f\"Failed to initialize advanced models: {e}\")
+            logger.error(f"Failed to initialize advanced models: {e}")
             # Continue without advanced models if initialization fails
 
     async def collect_learning_data(self, post_id: int, actual_performance: Dict[str, Any]):
@@ -257,6 +296,9 @@ class LearningManager:
         Generate caption with continuous learning adaptation.
         """
         try:
+            # Lazy import to avoid circular dependency
+            from backend.services.ai_service import generate_caption_service
+
             # Get base caption
             base_caption = await generate_caption_service(video_path, "ml")
 
@@ -275,6 +317,8 @@ class LearningManager:
 
         except Exception as e:
             logger.error(f"Failed to generate adaptive caption: {e}")
+            # Lazy import for fallback
+            from backend.services.ai_service import generate_caption_service
             return await generate_caption_service(video_path, "ml")
 
     def _extract_post_features(self, post) -> Dict[str, Any]:

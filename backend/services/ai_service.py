@@ -6,32 +6,77 @@ import tempfile
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-import whisper
-from database import LearningData, async_session
-from openai import OpenAI
-from transformers import pipeline
+from backend.database import LearningData, async_session
+try:
+    from openai import OpenAI
+except ImportError:
+    OpenAI = None
+try:
+    from transformers import pipeline
+except ImportError:
+    pipeline = None
 
-from ai_engine.advanced_models import AdvancedMLModels
+try:
+    from ai_engine.advanced_models import AdvancedMLModels
+except ImportError:
+    AdvancedMLModels = None
 from ai_engine.learning_manager import LearningManager
+try:
+    from services.speech_recognition import speech_recognition_service, STTProvider
+except ImportError:
+    speech_recognition_service = None
+    STTProvider = None
 
 logger = logging.getLogger(__name__)
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-WHISPER_MODEL = os.getenv("WHISPER_MODEL", "base")
 
-openai_client = OpenAI(api_key=OPENAI_API_KEY)
-whisper_model = whisper.load_model(WHISPER_MODEL)
+if OpenAI:
+    openai_client = OpenAI(api_key=OPENAI_API_KEY)
+else:
+    openai_client = None
 
 # Initialize learning manager and advanced models
 learning_manager = LearningManager()
-advanced_models = AdvancedMLModels()
+
+# Advanced models with robust error handling
+advanced_models = None
+try:
+    # First try the original import
+    from backend.models.advanced_models import AdvancedMLModels
+    advanced_models = AdvancedMLModels()
+    print("Advanced models initialized successfully")
+except ImportError:
+    # If that fails, check what's available and use alternatives
+    try:
+        import backend.models.advanced_models as am
+        available_classes = [x for x in dir(am) if not x.startswith('_') and x[0].isupper()]
+        print(f"Available classes in advanced_models: {available_classes}")
+        
+        # Try common alternative class names
+        if 'AdvancedModel' in available_classes:
+            from backend.models.advanced_models import AdvancedModel
+            advanced_models = AdvancedModel()
+            print("Using AdvancedModel as alternative")
+        elif 'MLModel' in available_classes:
+            from backend.models.advanced_models import MLModel
+            advanced_models = MLModel()
+            print("Using MLModel as alternative")
+        else:
+            print("No suitable advanced model class found")
+            
+    except Exception as e:
+        print(f"Could not find alternative advanced models: {e}")
+except Exception as e:
+    print(f"Advanced models initialization failed: {e}")
 
 # Emotion analysis pipeline for Malayalam content
-emotion_analyzer = pipeline(
-    "text-classification",
-    model="j-hartmann/emotion-english-distilroberta-base-0.2",
-    return_all_scores=True,
-)
+emotion_analyzer = None  # Temporarily disabled due to model access issues
+# emotion_analyzer = pipeline(
+#     "text-classification",
+#     model="j-hartmann/emotion-english-distilroberta-base-0.2",
+#     return_all_scores=True,
+# ) if pipeline else None
 
 
 async def generate_caption_service(video_path: str, language: str = "ml") -> str:
@@ -56,24 +101,111 @@ async def generate_subtitles_service(
     video_path: str, language: str = "ml"
 ) -> List[Dict]:
     """
-    Generate subtitles for video using Whisper.
+    Generate subtitles for video using alternative speech recognition.
     Returns list of subtitle segments with timestamps.
     """
-    result = whisper_model.transcribe(video_path, language=language)
-    subtitles = []
-    for segment in result["segments"]:
-        subtitles.append(
-            {"start": segment["start"], "end": segment["end"], "text": segment["text"]}
+    # Extract audio from video first
+    import moviepy.editor as mp
+
+    try:
+        video = mp.VideoFileClip(video_path)
+        audio_path = video_path.replace('.mp4', '_temp.wav')
+        video.audio.write_audiofile(audio_path, verbose=False, logger=None)
+
+        # Read audio data
+        with open(audio_path, 'rb') as f:
+            audio_data = f.read()
+
+        # Transcribe using alternative service
+        result = await speech_recognition_service.transcribe_audio(
+            audio_data, language=_map_language_code(language)
         )
-    return subtitles
+
+        # Clean up temp file
+        os.unlink(audio_path)
+
+        # Format subtitles
+        subtitles = []
+        if result.get("segments"):
+            for segment in result["segments"]:
+                subtitles.append({
+                    "start": segment.get("start_time", 0),
+                    "end": segment.get("end_time", 0),
+                    "text": segment.get("word", "")
+                })
+        else:
+            # Fallback: create single subtitle from full text
+            duration = video.duration if video else 10
+            subtitles = [{
+                "start": 0,
+                "end": duration,
+                "text": result.get("text", "")
+            }]
+
+        return subtitles
+
+    except Exception as e:
+        logger.error(f"Subtitle generation failed: {e}")
+        return []
+
+
+async def transcribe_video_async(video_path: str, language: str = "ml") -> str:
+    """
+    Transcribe video audio to text using alternative speech recognition.
+    """
+    # Extract audio from video
+    import moviepy.editor as mp
+
+    try:
+        video = mp.VideoFileClip(video_path)
+        audio_path = video_path.replace('.mp4', '_temp.wav')
+        video.audio.write_audiofile(audio_path, verbose=False, logger=None)
+
+        # Read audio data
+        with open(audio_path, 'rb') as f:
+            audio_data = f.read()
+
+        # Transcribe using alternative service
+        result = await speech_recognition_service.transcribe_audio(
+            audio_data, language=_map_language_code(language)
+        )
+
+        # Clean up temp file
+        os.unlink(audio_path)
+
+        return result.get("text", "")
+
+    except Exception as e:
+        logger.error(f"Video transcription failed: {e}")
+        return ""
 
 
 def transcribe_video(video_path: str, language: str = "ml") -> str:
     """
-    Transcribe video audio to text using Whisper.
+    Synchronous wrapper for video transcription.
     """
-    result = whisper_model.transcribe(video_path, language=language)
-    return result["text"]
+    # Run async transcription in event loop
+    try:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        result = loop.run_until_complete(transcribe_video_async(video_path, language))
+        loop.close()
+        return result
+    except Exception as e:
+        logger.error(f"Transcription wrapper failed: {e}")
+        return ""
+
+
+def _map_language_code(language: str) -> str:
+    """Map simple language codes to full codes expected by STT services."""
+    language_map = {
+        "ml": "ml-IN",  # Malayalam
+        "en": "en-US",  # English
+        "hi": "hi-IN",  # Hindi
+        "ta": "ta-IN",  # Tamil
+        "te": "te-IN",  # Telugu
+    }
+    return language_map.get(language, "en-US")
 
 
 async def generate_adaptive_caption_service(
